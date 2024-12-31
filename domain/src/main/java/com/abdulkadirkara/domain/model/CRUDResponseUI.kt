@@ -1,6 +1,6 @@
 package com.abdulkadirkara.domain.model
 
-data class CRUDResponse(
+data class CRUDResponseUI(
     val success: Int,
     val message: String
 )

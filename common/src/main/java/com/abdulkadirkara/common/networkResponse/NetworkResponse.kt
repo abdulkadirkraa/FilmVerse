@@ -1,6 +1,5 @@
 package com.abdulkadirkara.common.networkResponse
 
-
 import retrofit2.HttpException
 import java.io.IOException
 
