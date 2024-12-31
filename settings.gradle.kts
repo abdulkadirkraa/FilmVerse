@@ -23,3 +23,4 @@ rootProject.name = "FilmVerse"
 include(":app")
 include(":data")
 include(":domain")
+include(":common")
