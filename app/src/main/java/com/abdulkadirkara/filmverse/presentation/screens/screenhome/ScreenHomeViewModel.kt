@@ -1,5 +1,6 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -29,6 +30,8 @@ class ScreenHomeViewModel @Inject constructor(
 
     private val _categoryState = MutableLiveData<HomeUIState<List<FilmCategoryUI>>>(HomeUIState.Loading)
     val categoryState: LiveData<HomeUIState<List<FilmCategoryUI>>> = _categoryState
+    private val _selectedCategory = MutableLiveData<FilmCategoryUI>()
+    val selectedCategory: LiveData<FilmCategoryUI> = _selectedCategory
 
     private val _movieState = MutableLiveData<HomeUIState<List<FilmCardUI>>>(HomeUIState.Loading)
     val movieState: LiveData<HomeUIState<List<FilmCardUI>>> = _movieState
@@ -37,6 +40,7 @@ class ScreenHomeViewModel @Inject constructor(
         getAllImages()
         getAllCategories()
         getAllMovies()
+        _selectedCategory.value = FilmCategoryUI(isClicked = true, category = "Tümü")
     }
 
     fun getAllImages() {
@@ -85,5 +89,18 @@ class ScreenHomeViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun selectCategory(category: FilmCategoryUI) {
+        _categoryState.value = when (val currentState = _categoryState.value) {
+            is HomeUIState.Success -> {
+                val updatedCategories = currentState.data.map {
+                    it.copy(isClicked = it == category)
+                }
+                HomeUIState.Success(updatedCategories)
+            }
+            else -> _categoryState.value
+        }
+        _selectedCategory.value = category
     }
 }
