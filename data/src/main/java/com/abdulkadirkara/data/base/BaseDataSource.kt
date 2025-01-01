@@ -1,5 +1,6 @@
 package com.abdulkadirkara.data.base
 
+import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.di.coroutines.DispatcherType
 import com.abdulkadirkara.data.di.coroutines.FilmVerseDispatchers
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
@@ -11,26 +12,28 @@ import java.io.IOException
 abstract class BaseDataSource {
     suspend fun <T> ioDispatcherCall(
         @FilmVerseDispatchers(DispatcherType.Io) ioDispatcher: CoroutineDispatcher,
-        apiCall: suspend () -> T)
+        apiCall: suspend () -> T
+    )
             : T {
         return withContext(ioDispatcher) { apiCall() }
     }
 
-    suspend fun <T> safeApiCall(apiCall: suspend () -> T): com.abdulkadirkara.common.networkResponse.NetworkResponse<T> {
+    suspend fun <T> safeApiCall(apiCall: suspend () -> T): NetworkResponse<T> {
         return try {
             val response = apiCall()
             if (response is List<*> && response.isEmpty() ||
-                response is FilmResponse && response.movies.isEmpty()) {
-                com.abdulkadirkara.common.networkResponse.NetworkResponse.Empty
+                response is FilmResponse && response.movies.isEmpty()
+            ) {
+                NetworkResponse.Empty
             } else {
-                com.abdulkadirkara.common.networkResponse.NetworkResponse.Success(response)
+                NetworkResponse.Success(response)
             }
         } catch (e: HttpException) {
-            com.abdulkadirkara.common.networkResponse.NetworkResponse.Error.HttpError(e)
+            NetworkResponse.Error.HttpError(e)
         } catch (e: IOException) {
-            com.abdulkadirkara.common.networkResponse.NetworkResponse.Error.NetworkError(e)
+            NetworkResponse.Error.NetworkError(e)
         } catch (e: Exception) {
-            com.abdulkadirkara.common.networkResponse.NetworkResponse.Error.UnknownError(e)
+            NetworkResponse.Error.UnknownError(e)
         }
     }
 }

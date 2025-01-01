@@ -1,5 +1,6 @@
 package com.abdulkadirkara.data.base
 
+import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.common.networkResponse.onEmpty
 import com.abdulkadirkara.common.networkResponse.onError
 import com.abdulkadirkara.common.networkResponse.onLoading
@@ -10,17 +11,17 @@ import kotlinx.coroutines.flow.flow
 abstract class BaseRepository {
 
     suspend fun <T, R> safeApiCall(
-        apiCall: suspend () -> com.abdulkadirkara.common.networkResponse.NetworkResponse<T>,
+        apiCall: suspend () -> NetworkResponse<T>,
         transform: (T) -> R
-    ): Flow<com.abdulkadirkara.common.networkResponse.NetworkResponse<R>> = flow {
-        emit(com.abdulkadirkara.common.networkResponse.NetworkResponse.Loading)
+    ): Flow<NetworkResponse<R>> = flow {
+        emit(NetworkResponse.Loading)
         val response = apiCall()
         response.onSuccess { data ->
-            emit(com.abdulkadirkara.common.networkResponse.NetworkResponse.Success(transform(data)))
+            emit(NetworkResponse.Success(transform(data)))
         }.onEmpty {
-            emit(com.abdulkadirkara.common.networkResponse.NetworkResponse.Empty)
+            emit(NetworkResponse.Empty)
         }.onLoading {
-            emit(com.abdulkadirkara.common.networkResponse.NetworkResponse.Loading)
+            emit(NetworkResponse.Loading)
         }.onError {
             emit(it)
         }

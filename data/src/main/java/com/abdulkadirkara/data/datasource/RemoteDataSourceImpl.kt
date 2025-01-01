@@ -1,5 +1,6 @@
 package com.abdulkadirkara.data.datasource
 
+import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.base.BaseDataSource
 import com.abdulkadirkara.data.di.coroutines.DispatcherType
 import com.abdulkadirkara.data.di.coroutines.FilmVerseDispatchers
@@ -14,7 +15,7 @@ class RemoteDataSourceImpl @Inject constructor(
     private val apiService: ApiService,
     @FilmVerseDispatchers(DispatcherType.Io) private val ioDispatcher: CoroutineDispatcher
 ) : RemoteDataSource, BaseDataSource() {
-    override suspend fun getAllMovies(): com.abdulkadirkara.common.networkResponse.NetworkResponse<FilmResponse> {
+    override suspend fun getAllMovies(): NetworkResponse<FilmResponse> {
         return ioDispatcherCall(ioDispatcher) {
             safeApiCall { apiService.getAllMovies() }
         }
@@ -31,7 +32,7 @@ class RemoteDataSourceImpl @Inject constructor(
         description: String,
         orderAmount: Int,
         userName: String
-    ): com.abdulkadirkara.common.networkResponse.NetworkResponse<CRUDResponse> {
+    ): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
             safeApiCall { apiService.insertMovie(
                 name, image, price, category, rating, year, director, description, orderAmount, userName
@@ -39,13 +40,13 @@ class RemoteDataSourceImpl @Inject constructor(
         }
     }
 
-    override suspend fun getMovieCart(userName: String): com.abdulkadirkara.common.networkResponse.NetworkResponse<FilmCardResponse> {
+    override suspend fun getMovieCart(userName: String): NetworkResponse<FilmCardResponse> {
         return ioDispatcherCall(ioDispatcher){
             safeApiCall { apiService.getMovieCart(userName) }
         }
     }
 
-    override suspend fun deleteMovie(cartId: Int, userName: String): com.abdulkadirkara.common.networkResponse.NetworkResponse<CRUDResponse> {
+    override suspend fun deleteMovie(cartId: Int, userName: String): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
             safeApiCall { apiService.deleteMovie(cartId, userName) }
         }

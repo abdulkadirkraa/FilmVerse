@@ -1,4 +1,4 @@
-package com.abdulkadirkara.mapper
+package com.abdulkadirkara.data.mapper
 
 import com.abdulkadirkara.data.remote.dto.allFilms.Film
 import com.abdulkadirkara.data.remote.dto.crud.CRUDResponse

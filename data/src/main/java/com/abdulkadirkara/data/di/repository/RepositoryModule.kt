@@ -13,5 +13,5 @@ import dagger.hilt.android.scopes.ViewModelScoped
 abstract class RepositoryModule {
     @Binds
     @ViewModelScoped
-    abstract fun bindRespository(repositoryImpl: FilmVerseRepositoryImpl) : FilmVerseRepository
+    abstract fun bindRepository(repositoryImpl: FilmVerseRepositoryImpl) : FilmVerseRepository
 }
