@@ -40,7 +40,6 @@ class ScreenHomeViewModel @Inject constructor(
         getAllImages()
         getAllCategories()
         getAllMovies()
-        _selectedCategory.value = FilmCategoryUI(isClicked = true, category = "Tümü")
     }
 
     fun getAllImages() {
@@ -59,21 +58,26 @@ class ScreenHomeViewModel @Inject constructor(
         }
     }
 
-    fun getAllCategories(){
+    fun getAllCategories() {
         viewModelScope.launch {
             getAllCategoriesUseCase().collect { it ->
                 it.onEmpty {
                     _categoryState.value = HomeUIState.Empty
                 }.onLoading {
                     _categoryState.value = HomeUIState.Loading
-                }.onSuccess {
-                    _categoryState.value = HomeUIState.Success(it)
+                }.onSuccess { categories ->
+                    val allCategories = listOf(
+                        FilmCategoryUI(category = "Tümü", isClicked = true)
+                    ) + categories
+                    _categoryState.value = HomeUIState.Success(allCategories)
+                    _selectedCategory.value = allCategories.first() // "Tümü" kategorisini seçili yap
                 }.onError {
                     _categoryState.value = HomeUIState.Error(it.toString())
                 }
             }
         }
     }
+
 
     fun getAllMovies(){
         viewModelScope.launch {
@@ -92,15 +96,13 @@ class ScreenHomeViewModel @Inject constructor(
     }
 
     fun selectCategory(category: FilmCategoryUI) {
-        _categoryState.value = when (val currentState = _categoryState.value) {
-            is HomeUIState.Success -> {
-                val updatedCategories = currentState.data.map {
-                    it.copy(isClicked = it == category)
-                }
-                HomeUIState.Success(updatedCategories)
+        if (_categoryState.value is HomeUIState.Success) {
+            val currentState = (_categoryState.value as HomeUIState.Success<List<FilmCategoryUI>>)
+            val updatedCategories = currentState.data.map {
+                it.copy(isClicked = it == category) // Sadece seçilen kategoriye "true" atanır
             }
-            else -> _categoryState.value
+            _categoryState.value = HomeUIState.Success(updatedCategories) // Yeni listeyi UI'ye yansıt
+            _selectedCategory.value = category // Seçilen kategoriyi güncelle
         }
-        _selectedCategory.value = category
     }
 }

@@ -66,7 +66,7 @@ import kotlinx.coroutines.delay
 @Composable
 fun ScreenHome(
     viewModel: ScreenHomeViewModel = hiltViewModel()
-){
+) {
     val imageState = viewModel.imageState.observeAsState(HomeUIState.Loading)
     val categoryState = viewModel.categoryState.observeAsState(HomeUIState.Loading)
     val selectedCategory = viewModel.selectedCategory.observeAsState().value
@@ -77,14 +77,14 @@ fun ScreenHome(
             CustomTopAppBar()
         }
     ) {
-        Column (
+        Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
             //image state'ine bakar viewpager yapıyı çağırır
             HomeScreenImageState(imageState)
             //categori state'ine bakarak card yapısını çağırır
-            HomeScreenCategoryState(categoryState, viewModel,selectedCategory)
+            HomeScreenCategoryState(categoryState, viewModel, selectedCategory)
             //HomeScreenMovies
             HomeScreenMoviesState(movieState)
         }
@@ -98,6 +98,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
             //boşşsa diye uygun bir lottie animasyon ile component kullanılabilir
             LoadingComponent()
         }
+
         is HomeUIState.Error -> {
             val errorMessage = (imageState.value as HomeUIState.Error).message
             ErrorComponent(errorMessage) {
@@ -105,9 +106,11 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
                 //Burda da bir lottie animasyonu döndüreibliriz
             }
         }
+
         HomeUIState.Loading -> {
             LoadingComponent()
         }
+
         is HomeUIState.Success -> {
             val imageList = (imageState.value as HomeUIState.Success<List<FilmImageUI>>).data
             HomeScreenViewPager(imageList)
@@ -117,7 +120,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeScreenViewPager(imageList: List<FilmImageUI>){
+fun HomeScreenViewPager(imageList: List<FilmImageUI>) {
     val pagerState = rememberPagerState(pageCount = imageList.size)
     LaunchedEffect(Unit) {
         while (true) {
@@ -141,9 +144,9 @@ fun HomeScreenViewPager(imageList: List<FilmImageUI>){
             Card(
                 modifier = Modifier
                     .fillMaxSize() // Orijinal genişlik 200, iki katına çıkarıyoruz
-                    //.height(300.dp) // Orijinal yükseklik 300, iki katına çıkarıyoruz
-                    //.padding(8.dp),
-                        ,
+                //.height(300.dp) // Orijinal yükseklik 300, iki katına çıkarıyoruz
+                //.padding(8.dp),
+                ,
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 AsyncImage(
@@ -167,19 +170,20 @@ fun HomeScreenCategoryState(
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (categoryState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage){
+            ErrorComponent(errorMessage) {
                 //Bir şeyler yapıalcak
             }
         }
+
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
             val categories = (categoryState.value as HomeUIState.Success<List<FilmCategoryUI>>).data
-            val allCategories = listOf(FilmCategoryUI(category = "Tümü", isClicked = false)) + categories
+            val selectedCategory = categories.find { it.isClicked } ?: categories.first()
             CategoryList(
-                categories = allCategories,
-                selectedCategory = selectedCategory ?: allCategories.first()
+                categories = categories,
+                selectedCategory = selectedCategory
             ) { selected ->
-                viewModel.selectCategory(selected)
+                viewModel.selectCategory(selected) // Kategori seçimi
             }
         }
     }
@@ -191,29 +195,32 @@ fun CategoryList(
     selectedCategory: FilmCategoryUI,
     onCategorySelected: (FilmCategoryUI) -> Unit
 ) {
-    LazyRow {
+    LazyRow(
+        modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
+    ) {
         items(categories.size) { index ->
             val category = categories[index]
             val isSelected = category == selectedCategory
 
-            OutlinedCard(
+            Card(
                 modifier = Modifier
-                    .padding(8.dp)
+                    .padding(horizontal = 8.dp)
                     .clickable { onCategorySelected(category) },
-                colors = CardDefaults.outlinedCardColors(
-                    containerColor = if (isSelected) Color.Blue.copy(alpha = 0.2f) else Color.Transparent,
-                    contentColor = if (isSelected) Color.Red else Color.Green
+                shape = RoundedCornerShape(16.dp),
+                border = if (isSelected) BorderStroke(2.dp, Color(0xFF007BFF)) else null,
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isSelected) Color(0xFFE3F2FD) else Color(0xFFF5F5F5),
+                    contentColor = if (isSelected) Color(0xFF0D47A1) else Color(0xFF424242)
                 ),
-                border = if (isSelected) BorderStroke(2.dp, Color.Blue) else BorderStroke(1.dp, Color.Gray),
-                elevation = CardDefaults.cardElevation(if (isSelected) 8.dp else 2.dp) // Seçili olan kart daha belirgin olabilir
             ) {
                 Text(
                     text = category.category,
                     modifier = Modifier
-                        .padding(16.dp)
-                        .align(Alignment.CenterHorizontally),
-                    color = if (isSelected) Color.Blue else Color.Black,
-                    style = if (isSelected) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    color = if (isSelected) Color(0xFF0D47A1) else Color(0xFF424242),
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
                 )
             }
         }
@@ -221,8 +228,8 @@ fun CategoryList(
 }
 
 @Composable
-fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>){
-    when(movieState.value){
+fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>) {
+    when (movieState.value) {
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (movieState.value as HomeUIState.Error).message
@@ -230,12 +237,13 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>){
                 //Bir şeyler yapıalcak
             }
         }
+
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardUI>>).data
-            HomeScreenMovies(movies,{
+            HomeScreenMovies(movies, {
                 //onFavoriteClick
-            },{
+            }, {
                 //addToCartClick
             })
         }
@@ -243,7 +251,11 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>){
 }
 
 @Composable
-fun HomeScreenMovies(films: List<FilmCardUI>, onFavoriteClick: (FilmCardUI) -> Unit, onAddToCartClick: (FilmCardUI) -> Unit) {
+fun HomeScreenMovies(
+    films: List<FilmCardUI>,
+    onFavoriteClick: (FilmCardUI) -> Unit,
+    onAddToCartClick: (FilmCardUI) -> Unit
+) {
     val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
 
     LazyVerticalGrid(
@@ -263,7 +275,11 @@ fun HomeScreenMovies(films: List<FilmCardUI>, onFavoriteClick: (FilmCardUI) -> U
 }
 
 @Composable
-fun FilmCardItem(film: FilmCardUI, onFavoriteClick: (FilmCardUI) -> Unit, onAddToCartClick: (FilmCardUI) -> Unit) {
+fun FilmCardItem(
+    film: FilmCardUI,
+    onFavoriteClick: (FilmCardUI) -> Unit,
+    onAddToCartClick: (FilmCardUI) -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(8.dp)
@@ -307,7 +323,7 @@ fun FilmCardItem(film: FilmCardUI, onFavoriteClick: (FilmCardUI) -> Unit, onAddT
             }
 
             // Kampanya alanı
-            if (film.campaign == null ) {
+            if (film.campaign == null) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -352,12 +368,13 @@ fun FilmCardItem(film: FilmCardUI, onFavoriteClick: (FilmCardUI) -> Unit, onAddT
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 when (film.cartState) {
-                    CartState.NOT_IN_CART -> OutlinedButton (
+                    CartState.NOT_IN_CART -> OutlinedButton(
                         onClick = { onAddToCartClick(film) },
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(text = "Sepete Ekle")
                     }
+
                     else -> {}
                 }
             }
