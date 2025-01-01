@@ -53,6 +53,7 @@ android {
 
 dependencies {
 
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -69,7 +70,27 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
+    implementation(project(":data"))
+    implementation(project(":domain"))
+    implementation(project(":common"))
     //Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
+    //Navigation
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.hilt.navigation.compose)
+    //Gson
+    implementation (libs.gson)
+    //ViewModel
+    implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.activity.ktx)
+    //LiveData
+    implementation(libs.androidx.runtime.livedata)
+    //Coroutines
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android.v173)
+    //Glide
+    implementation (libs.landscapist.glide)
+
 }
