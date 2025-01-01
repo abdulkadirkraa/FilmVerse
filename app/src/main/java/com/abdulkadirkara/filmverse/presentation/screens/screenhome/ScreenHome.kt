@@ -3,31 +3,55 @@ package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.data.remote.ApiConstants
+import com.abdulkadirkara.domain.model.CartState
+import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.domain.model.FilmCategoryUI
 import com.abdulkadirkara.domain.model.FilmImageUI
 import com.abdulkadirkara.filmverse.presentation.screens.components.CustomTopAppBar
@@ -62,6 +86,7 @@ fun ScreenHome(
             //categori state'ine bakarak card yapısını çağırır
             HomeScreenCategoryState(categoryState, viewModel,selectedCategory)
             //HomeScreenMovies
+            HomeScreenMoviesState(movieState)
         }
     }
 }
@@ -112,8 +137,6 @@ fun HomeScreenViewPager(imageList: List<FilmImageUI>){
             verticalAlignment = Alignment.CenterVertically // Sayfaları dikeyde ortala
         ) { currentPage ->
             val url = ApiConstants.IMAGE_BASE_URL + imageList[currentPage].image
-            Log.e("url", url)
-
             // Resim kartı
             Card(
                 modifier = Modifier
@@ -192,6 +215,151 @@ fun CategoryList(
                     color = if (isSelected) Color.Blue else Color.Black,
                     style = if (isSelected) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>){
+    when(movieState.value){
+        is HomeUIState.Empty -> LoadingComponent()
+        is HomeUIState.Error -> {
+            val errorMessage = (movieState.value as HomeUIState.Error).message
+            ErrorComponent(errorMessage) {
+                //Bir şeyler yapıalcak
+            }
+        }
+        is HomeUIState.Loading -> LoadingComponent()
+        is HomeUIState.Success -> {
+            val movies = (movieState.value as HomeUIState.Success<List<FilmCardUI>>).data
+            HomeScreenMovies(movies,{
+                //onFavoriteClick
+            },{
+                //addToCartClick
+            })
+        }
+    }
+}
+
+@Composable
+fun HomeScreenMovies(films: List<FilmCardUI>, onFavoriteClick: (FilmCardUI) -> Unit, onAddToCartClick: (FilmCardUI) -> Unit) {
+    val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
+
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(2), // 2 sütunlu grid
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp)
+    ) {
+        items(filmState.size) { index ->
+            val film = filmState[index]
+            FilmCardItem(
+                film = film,
+                onFavoriteClick = { onFavoriteClick(it) },
+                onAddToCartClick = { onAddToCartClick(it) }
+            )
+        }
+    }
+}
+
+@Composable
+fun FilmCardItem(film: FilmCardUI, onFavoriteClick: (FilmCardUI) -> Unit, onAddToCartClick: (FilmCardUI) -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(8.dp)
+            .fillMaxWidth()
+            .height(400.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                val imageUrl = ApiConstants.IMAGE_BASE_URL + film.image
+                Log.e("FilmCardItem", "Film Image URL: $imageUrl")
+                // Film görseli
+                AsyncImage(
+                    model = imageUrl,
+                    contentDescription = "Film Görseli",
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier.fillMaxSize()
+                )
+                // Favori butonu
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color.LightGray, CircleShape)
+                        .align(Alignment.TopEnd)
+                        .padding(4.dp)
+                ) {
+                    Icon(
+                        Icons.Rounded.FavoriteBorder,
+                        contentDescription = "Favori",
+                        tint = if (film.isFavorite) Color.Red else Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clickable { onFavoriteClick(film) }
+                    )
+                }
+            }
+
+            // Kampanya alanı
+            if (film.campaign == null ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Magenta)
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "50TL Kampanya",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp
+                    )
+                }
+            }
+
+            // Film bilgileri
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                Text(
+                    text = film.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Star,
+                        contentDescription = "Rating",
+                        tint = Color.Yellow,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(text = film.rating.toString(), fontSize = 14.sp)
+                }
+                Text(
+                    text = "${film.price} ₺",
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+                when (film.cartState) {
+                    CartState.NOT_IN_CART -> OutlinedButton (
+                        onClick = { onAddToCartClick(film) },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = "Sepete Ekle")
+                    }
+                    else -> {}
+                }
             }
         }
     }
