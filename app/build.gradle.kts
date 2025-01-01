@@ -82,15 +82,22 @@ dependencies {
     //Gson
     implementation (libs.gson)
     //ViewModel
-    implementation(libs.androidx.lifecycle.viewmodel)
+    //implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.ktx)
     //LiveData
     implementation(libs.androidx.runtime.livedata)
     //Coroutines
     implementation(libs.kotlinx.coroutines.core)
-    implementation(libs.kotlinx.coroutines.android.v173)
+    implementation(libs.kotlinx.coroutines.android)
     //Glide
     implementation (libs.landscapist.glide)
+    //Icons
+    implementation(libs.androidx.material.icons.extended)
+    //pager
+    implementation (libs.accompanist.pager)
+    //Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 
 }
