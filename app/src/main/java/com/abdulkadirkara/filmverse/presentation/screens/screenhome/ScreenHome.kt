@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -23,11 +24,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedCard
@@ -44,7 +48,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,6 +60,7 @@ import com.abdulkadirkara.domain.model.CartState
 import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.domain.model.FilmCategoryUI
 import com.abdulkadirkara.domain.model.FilmImageUI
+import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.screens.components.CustomTopAppBar
 import com.abdulkadirkara.filmverse.presentation.screens.components.ErrorComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
@@ -295,21 +302,20 @@ fun FilmCardItem(
                     .weight(1f)
             ) {
                 val imageUrl = ApiConstants.IMAGE_BASE_URL + film.image
-                Log.e("FilmCardItem", "Film Image URL: $imageUrl")
-                // Film görseli
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = "Film Görseli",
                     contentScale = ContentScale.FillHeight,
                     modifier = Modifier.fillMaxSize()
                 )
+
                 // Favori butonu
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(48.dp) // Daha büyük bir arka plan
+                        .padding(8.dp) // Kartın köşelerinden uzaklaştırmak için padding ekledik
                         .background(Color.LightGray, CircleShape)
                         .align(Alignment.TopEnd)
-                        .padding(4.dp)
                 ) {
                     Icon(
                         Icons.Rounded.FavoriteBorder,
@@ -322,21 +328,23 @@ fun FilmCardItem(
                 }
             }
 
-            // Kampanya alanı
-            if (film.campaign == null) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(Color.Magenta)
-                        .padding(4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "50TL Kampanya",
-                        color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
-                    )
+            if (film.id % 3 == 0){
+                // Kampanya alanı
+                if (film.campaign == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(Color.Magenta)
+                            .padding(4.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "5TL Kampanya",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -344,39 +352,128 @@ fun FilmCardItem(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(4.dp)
             ) {
                 Text(
                     text = film.name,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(bottom = 2.dp)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Filled.Star,
                         contentDescription = "Rating",
                         tint = Color.Yellow,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(text = film.rating.toString(), fontSize = 14.sp)
                 }
                 Text(
                     text = "${film.price} ₺",
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 4.dp)
                 )
                 when (film.cartState) {
-                    CartState.NOT_IN_CART -> OutlinedButton(
-                        onClick = { onAddToCartClick(film) },
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(text = "Sepete Ekle")
+                    CartState.NOT_IN_CART -> {
+                        CartStateNotInCartButton(){
+                            //burda sepet ekleme api isteği ve loading ile cart durum değişimi
+                        }
                     }
-
-                    else -> {}
+                    CartState.IN_CART_ONE -> {
+                        CardStateInCartOneButton(){
+                            //burda sepettekini silme veya arttırma api isteği ve loading ile cart durum değişimi
+                        }
+                    }
+                    CartState.IN_CART_MULTIPLE -> {
+                        CardStateInCartMultipleButton(){
+                            //burda sepet ekleme veya silme api isteği ve loading ile cart durum değişimi
+                        }
+                    }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun CartStateNotInCartButton(onCliked: () -> Unit){
+    Card (
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF0D47A1)
+        )
+    ) {
+        Text(
+            modifier = Modifier.fillMaxWidth().padding(4.dp),
+            text = "Sepete Ekle",
+            color = Color.White,
+            textAlign = TextAlign.Center,
+            fontSize = 16.sp
+        )
+    }
+}
+
+@Composable
+fun CardStateInCartOneButton(onCliked: () -> Unit){
+    Card (
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF0D47A1)
+        )
+    ){
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.Delete, contentDescription = "Delete", tint = Color.White)
+            }
+            Text(
+                text = "1",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.Add, contentDescription = "Add", tint = Color.White)
+            }
+        }
+    }
+}
+
+@Composable
+fun CardStateInCartMultipleButton(onCliked: () -> Unit){
+    Card (
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color(0xFF0D47A1)
+        )
+    ){
+        Row (
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {}) {
+                Icon(painter = painterResource(R.drawable.ic_minus_48), contentDescription = "Delete", tint = Color.White)
+            }
+            Text(
+                text = "2",
+                color = Color.White,
+                textAlign = TextAlign.Center,
+                fontSize = 16.sp
+            )
+            IconButton(onClick = {}) {
+                Icon(Icons.Rounded.Add, contentDescription = "Add", tint = Color.White)
             }
         }
     }
