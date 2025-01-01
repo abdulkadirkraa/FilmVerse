@@ -29,7 +29,11 @@ class FilmVerseRepositoryImpl @Inject constructor(
     override suspend fun getAllCategories(): Flow<NetworkResponse<List<FilmCategoryUI>>> =
         safeApiCall(
             apiCall = { remoteDataSource.getAllMovies() },
-            transform = { response -> response.movies.map { it.toFilmCategoryUI() } }
+            transform = { response ->
+                // Film kategorilerini tekilleştir
+                response.movies.map { it.toFilmCategoryUI() }
+                    .distinctBy { it.category } // Tekilleştirme işlemi
+            }
         )
 
     override suspend fun getAllMovies(): Flow<NetworkResponse<List<FilmCardUI>>> =
