@@ -1,7 +1,6 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,14 +26,11 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,24 +50,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.data.remote.ApiConstants
+import com.abdulkadirkara.domain.model.Campaign
 import com.abdulkadirkara.domain.model.CartState
 import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.domain.model.FilmCategoryUI
 import com.abdulkadirkara.domain.model.FilmImageUI
 import com.abdulkadirkara.filmverse.R
-import com.abdulkadirkara.filmverse.presentation.screens.components.CustomTopAppBar
+import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.ErrorComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
+import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.HomeScreenCustomTopBar
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
+import com.google.gson.Gson
 import kotlinx.coroutines.delay
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ScreenHome(
+    navController: NavController,
     viewModel: ScreenHomeViewModel = hiltViewModel()
 ) {
     val imageState = viewModel.imageState.observeAsState(HomeUIState.Loading)
@@ -81,7 +82,7 @@ fun ScreenHome(
 
     Scaffold(
         topBar = {
-            CustomTopAppBar()
+            HomeScreenCustomTopBar()
         }
     ) {
         Column(
@@ -93,7 +94,7 @@ fun ScreenHome(
             //categori state'ine bakarak card yapısını çağırır
             HomeScreenCategoryState(categoryState, viewModel, selectedCategory)
             //HomeScreenMovies
-            HomeScreenMoviesState(movieState)
+            HomeScreenMoviesState(movieState, navController)
         }
     }
 }
@@ -235,7 +236,7 @@ fun CategoryList(
 }
 
 @Composable
-fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>) {
+fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navController: NavController) {
     when (movieState.value) {
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
@@ -252,6 +253,10 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>) {
                 //onFavoriteClick
             }, {
                 //addToCartClick
+            },{
+                //onItemClicked
+                val json = Gson().toJson(it)
+                navController.navigate("${Screens.ScreenDetail.route}/$json")
             })
         }
     }
@@ -261,7 +266,8 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>) {
 fun HomeScreenMovies(
     films: List<FilmCardUI>,
     onFavoriteClick: (FilmCardUI) -> Unit,
-    onAddToCartClick: (FilmCardUI) -> Unit
+    onAddToCartClick: (FilmCardUI) -> Unit,
+    onItemClicked: (FilmCardUI) -> Unit
 ) {
     val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
 
@@ -275,7 +281,8 @@ fun HomeScreenMovies(
             FilmCardItem(
                 film = film,
                 onFavoriteClick = { onFavoriteClick(it) },
-                onAddToCartClick = { onAddToCartClick(it) }
+                onAddToCartClick = { onAddToCartClick(it) },
+                onItemClicked = { onItemClicked(it) }
             )
         }
     }
@@ -285,13 +292,15 @@ fun HomeScreenMovies(
 fun FilmCardItem(
     film: FilmCardUI,
     onFavoriteClick: (FilmCardUI) -> Unit,
-    onAddToCartClick: (FilmCardUI) -> Unit
+    onAddToCartClick: (FilmCardUI) -> Unit,
+    onItemClicked: (FilmCardUI) -> Unit
 ) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .height(400.dp),
+            .height(400.dp)
+            .clickable { onItemClicked(film) },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
