@@ -25,9 +25,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -35,7 +33,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
@@ -43,7 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,8 +63,8 @@ import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.De
 
 @Composable
 fun ScreenDetail(film: FilmCardUI, navController: NavController) {
-    var quantity by remember { mutableStateOf(1) }
-    val totalPrice = remember { mutableStateOf(film.price * quantity) }
+    var quantity by remember { mutableIntStateOf(1) }
+    val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
     Scaffold(
         topBar = {
@@ -161,7 +158,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                 modifier = Modifier
                     .height(16.dp)
                     .fillMaxWidth()
-                    .background(Color.LightGray,)
+                    .background(Color.LightGray)
             )
             Text(
                 text = "Ürünün Kampanyaları",
@@ -222,7 +219,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                 modifier = Modifier
                     .height(16.dp)
                     .fillMaxWidth()
-                    .background(Color.LightGray,)
+                    .background(Color.LightGray)
             )
             Row(
                 modifier = Modifier
@@ -253,7 +250,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                 modifier = Modifier
                     .height(16.dp)
                     .fillMaxWidth()
-                    .background(Color.LightGray,)
+                    .background(Color.LightGray)
             )
             Row(
                 modifier = Modifier
@@ -268,7 +265,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                         .clickable {
                             if (quantity > 1) {
                                 quantity--
-                                totalPrice.value = film.price * quantity
+                                totalPrice.intValue = film.price * quantity
                             }else {
                                 Toast.makeText(context, "En az bir adet seçili olmalı", Toast.LENGTH_SHORT).show()
                             }
@@ -293,7 +290,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                         .size(40.dp)
                         .clickable {
                             quantity++
-                            totalPrice.value = film.price * quantity
+                            totalPrice.intValue = film.price * quantity
                         },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
@@ -318,7 +315,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = "${totalPrice.value} TL",
+                    text = "${totalPrice.intValue} TL",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -356,7 +353,7 @@ fun AnimatedCounter(
     style: TextStyle = MaterialTheme.typography.titleLarge
 ){
     var oldCOunt by remember {
-        mutableStateOf(count)
+        mutableIntStateOf(count)
     }
     SideEffect {
         oldCOunt = count
@@ -376,7 +373,7 @@ fun AnimatedCounter(
                 targetState = char,
                 transitionSpec = {
                     slideInVertically { it } togetherWith slideOutVertically { -it }
-                }
+                }, label = ""
             ) { char ->
                 Text(
                     text = char.toString(),

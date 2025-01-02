@@ -1,6 +1,5 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -42,7 +41,7 @@ class ScreenHomeViewModel @Inject constructor(
         getAllMovies()
     }
 
-    fun getAllImages() {
+    private fun getAllImages() {
         viewModelScope.launch {
             getAllImagesUseCase().collect { it ->
                 it.onEmpty {
@@ -58,7 +57,7 @@ class ScreenHomeViewModel @Inject constructor(
         }
     }
 
-    fun getAllCategories() {
+    private fun getAllCategories() {
         viewModelScope.launch {
             getAllCategoriesUseCase().collect { it ->
                 it.onEmpty {
@@ -79,7 +78,7 @@ class ScreenHomeViewModel @Inject constructor(
     }
 
 
-    fun getAllMovies(){
+    private fun getAllMovies(){
         viewModelScope.launch {
             getAllMoviesUseCase().collect{ it ->
                 it.onEmpty {
