@@ -21,7 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun DetailScreenCustomTopAppBar(){
+fun DetailScreenCustomTopAppBar(onBackClick: () -> Unit){
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -30,7 +30,7 @@ fun DetailScreenCustomTopAppBar(){
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceAround
     ) {
-        IconButton(onClick = { } ) { // Geri tuşu
+        IconButton(onClick = onBackClick) { // Geri tuşu
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Geri ok simgesi
                 contentDescription = "Back"

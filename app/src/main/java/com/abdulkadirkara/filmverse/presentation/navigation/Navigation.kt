@@ -27,7 +27,7 @@ fun Navigation(){
         ) {
             val json = it.arguments?.getString("film")
             val film = Gson().fromJson(json, FilmCardUI::class.java)
-            ScreenDetail(film)
+            ScreenDetail(film, navController)
         }
     }
 }
