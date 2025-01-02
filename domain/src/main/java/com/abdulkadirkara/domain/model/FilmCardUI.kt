@@ -7,6 +7,9 @@ data class FilmCardUI(
     val category: String,
     val rating: Double,
     val price: Int,
+    val description: String,
+    val year: Int,
+    val director: String,
     val isFavorite: Boolean,
     val campaign: Campaign? = null,
     val cartState: CartState // Sepetteki durum

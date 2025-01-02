@@ -35,6 +35,9 @@ object FilmMapper {
             price = price,
             isFavorite = false,
             campaign = null,
+            year = year,
+            description = description,
+            director = director,
             cartState = CartState.NOT_IN_CART
         )
     }
