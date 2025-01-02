@@ -1,5 +1,10 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screendetail
 
+import android.widget.Toast
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,19 +36,28 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardUI
@@ -51,10 +65,13 @@ import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
 @Composable
-fun ScreenDetail(film: FilmCardUI) {
+fun ScreenDetail(film: FilmCardUI, navController: NavController) {
+    var quantity by remember { mutableStateOf(1) }
+    val totalPrice = remember { mutableStateOf(film.price * quantity) }
+    val context = LocalContext.current
     Scaffold(
         topBar = {
-            DetailScreenCustomTopAppBar()
+            DetailScreenCustomTopAppBar(onBackClick = { navController.popBackStack() })
         }
     ) { paddingValues ->
         val verticalState = rememberScrollState()
@@ -247,7 +264,15 @@ fun ScreenDetail(film: FilmCardUI) {
             ) {
                 Card(
                     modifier = Modifier
-                        .padding(4.dp),
+                        .size(40.dp)
+                        .clickable {
+                            if (quantity > 1) {
+                                quantity--
+                                totalPrice.value = film.price * quantity
+                            }else {
+                                Toast.makeText(context, "En az bir adet seçili olmalı", Toast.LENGTH_SHORT).show()
+                            }
+                        },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF0D47A1),
@@ -255,22 +280,21 @@ fun ScreenDetail(film: FilmCardUI) {
                     )
                 ) {
                     Icon(
-                        painterResource(R.drawable.ic_minus_48),
-                        contentDescription = "minus",
-                        modifier = Modifier.size(24.dp)
+                        painter = painterResource(R.drawable.ic_minus_48),
+                        contentDescription = "Eksilt",
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "1",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(16.dp))
+                AnimatedCounter(count = quantity)
+                Spacer(modifier = Modifier.width(16.dp))
                 Card(
                     modifier = Modifier
-                        .padding(4.dp),
+                        .size(40.dp)
+                        .clickable {
+                            quantity++
+                            totalPrice.value = film.price * quantity
+                        },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF0D47A1),
@@ -279,41 +303,89 @@ fun ScreenDetail(film: FilmCardUI) {
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
-                        contentDescription = "add",
-                        modifier = Modifier.size(24.dp)
+                        contentDescription = "Arttır",
+                        modifier = Modifier.padding(12.dp)
                     )
                 }
-
             }
-            Row (
+
+            // Fiyat Bilgisi ve Sepete Ekle
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 8.dp, end = 8.dp, bottom = paddingValues.calculateBottomPadding()),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
-            ){
+            ) {
                 Text(
-                    text = "${film.price} TL",
+                    text = "${totalPrice.value} TL",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
                     modifier = Modifier.padding(4.dp).weight(50f)
                 )
-                Card (
-                    modifier = Modifier.fillMaxWidth().weight(50f),
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(50f),
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF0D47A1)
                     )
                 ) {
                     Text(
-                        modifier = Modifier.fillMaxWidth().padding(4.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(8.dp),
                         text = "Sepete Ekle",
                         color = Color.White,
                         textAlign = TextAlign.Center,
                         fontSize = 16.sp
                     )
                 }
+            }
+        }
+
+    }
+}
+
+@Composable
+fun AnimatedCounter(
+    count: Int,
+    modifier: Modifier = Modifier,
+    style: TextStyle = MaterialTheme.typography.titleLarge
+){
+    var oldCOunt by remember {
+        mutableStateOf(count)
+    }
+    SideEffect {
+        oldCOunt = count
+    }
+    Row(modifier = modifier) {
+        val countString = count.toString()
+        val oldCountString = oldCOunt.toString()
+        for (i in countString.indices){
+            val oldChar = oldCountString.getOrNull(i)
+            val newChar = countString[i]
+            val char = if (oldChar == newChar){
+                oldCountString[i]
+            }else{
+                countString[i]
+            }
+            AnimatedContent(
+                targetState = char,
+                transitionSpec = {
+                    slideInVertically { it } togetherWith slideOutVertically { -it }
+                }
+            ) { char ->
+                Text(
+                    text = char.toString(),
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    style = style,
+                    softWrap = false
+                )
             }
         }
     }
