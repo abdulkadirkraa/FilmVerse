@@ -1,4 +1,4 @@
-package com.abdulkadirkara.filmverse.presentation.screens.components
+package com.abdulkadirkara.filmverse.presentation.screens.components.topappbar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +28,7 @@ import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 
 @Composable
-fun CustomTopAppBar() {
+fun HomeScreenCustomTopBar() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
