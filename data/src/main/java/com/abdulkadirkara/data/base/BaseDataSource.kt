@@ -13,8 +13,7 @@ abstract class BaseDataSource {
     suspend fun <T> ioDispatcherCall(
         @FilmVerseDispatchers(DispatcherType.Io) ioDispatcher: CoroutineDispatcher,
         apiCall: suspend () -> T
-    )
-            : T {
+    ): T {
         return withContext(ioDispatcher) { apiCall() }
     }
 

@@ -30,25 +30,24 @@ class RemoteDataSourceImpl @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int,
-        userName: String
+        orderAmount: Int
     ): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
             safeApiCall { apiService.insertMovie(
-                name, image, price, category, rating, year, director, description, orderAmount, userName
+                name, image, price, category, rating, year, director, description, orderAmount
             ) }
         }
     }
 
-    override suspend fun getMovieCart(userName: String): NetworkResponse<FilmCardResponse> {
+    override suspend fun getMovieCart(): NetworkResponse<FilmCardResponse> {
         return ioDispatcherCall(ioDispatcher){
-            safeApiCall { apiService.getMovieCart(userName) }
+            safeApiCall { apiService.getMovieCart() }
         }
     }
 
-    override suspend fun deleteMovie(cartId: Int, userName: String): NetworkResponse<CRUDResponse> {
+    override suspend fun deleteMovie(cartId: Int): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
-            safeApiCall { apiService.deleteMovie(cartId, userName) }
+            safeApiCall { apiService.deleteMovie(cartId) }
         }
     }
 }

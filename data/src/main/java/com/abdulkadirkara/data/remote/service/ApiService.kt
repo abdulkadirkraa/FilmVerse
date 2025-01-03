@@ -26,16 +26,16 @@ interface ApiService {
         @Field("director") director: String,
         @Field("description") description: String,
         @Field("orderAmount") orderAmount: Int,
-        @Field("userName") userName: String
+        @Field("userName") userName: String = ApiConstants.USER_NAME
     ) : CRUDResponse
 
     @GET(ApiConstants.GET_MOVIE_CART_END_POINT)
-    suspend fun getMovieCart(@Field("userName") userName: String) : FilmCardResponse
+    suspend fun getMovieCart(@Field("userName") userName: String = ApiConstants.USER_NAME) : FilmCardResponse
 
     @POST(ApiConstants.DELETE_MOVIE_END_POINT)
     @FormUrlEncoded
     suspend fun deleteMovie(
         @Field("cartId") cartId: Int,
-        @Field("userName") userName: String
+        @Field("userName") userName: String = ApiConstants.USER_NAME
     ) : CRUDResponse
 }

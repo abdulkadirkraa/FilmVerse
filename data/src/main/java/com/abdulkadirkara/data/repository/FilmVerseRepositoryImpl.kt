@@ -51,28 +51,26 @@ class FilmVerseRepositoryImpl @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int,
-        userName: String
+        orderAmount: Int
     ): Flow<NetworkResponse<CRUDResponseUI>> =
         safeApiCall(
             apiCall = {
-                remoteDataSource.insertMovie(name, image, price, category, rating, year, director, description, orderAmount, userName
+                remoteDataSource.insertMovie(name, image, price, category, rating, year, director, description, orderAmount
             ) },
             transform = { response -> response.toCRUDResponseUI() }
         )
 
-    override suspend fun getMovieCart(userName: String): Flow<NetworkResponse<List<FilmCardItem>>> =
+    override suspend fun getMovieCart(): Flow<NetworkResponse<List<FilmCardItem>>> =
         safeApiCall(
-            apiCall = { remoteDataSource.getMovieCart(userName) },
+            apiCall = { remoteDataSource.getMovieCart() },
             transform = { response -> response.filmCards.map { it.toFilmCardItem() } }
         )
 
     override suspend fun deleteMovie(
-        cartId: Int,
-        userName: String
+        cartId: Int
     ): Flow<NetworkResponse<CRUDResponseUI>> =
         safeApiCall(
-            apiCall = { remoteDataSource.deleteMovie(cartId, userName) },
+            apiCall = { remoteDataSource.deleteMovie(cartId) },
             transform = { response -> response.toCRUDResponseUI() }
         )
 

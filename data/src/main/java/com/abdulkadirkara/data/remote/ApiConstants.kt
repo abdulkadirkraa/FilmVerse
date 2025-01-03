@@ -7,4 +7,5 @@ object ApiConstants {
     const val INSERT_MOVIE_END_POINT = "movies/insertMovie.php"
     const val DELETE_MOVIE_END_POINT = "movies/deleteMovie.php"
     const val IMAGE_BASE_URL = "http://kasimadalan.pe.hu/movies/images/"
+    const val USER_NAME = "abdulkadir_kara"
 }
