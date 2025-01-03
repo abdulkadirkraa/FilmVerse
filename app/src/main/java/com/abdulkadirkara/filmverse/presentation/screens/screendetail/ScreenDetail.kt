@@ -38,8 +38,10 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,18 +56,38 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
 @Composable
-fun ScreenDetail(film: FilmCardUI, navController: NavController) {
+fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: ScreenDetailViewModel = hiltViewModel()) {
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
+
+    val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
+
+    // Sepete ekleme sonucu
+    LaunchedEffect(insertMovieResult) {
+        insertMovieResult?.let { response ->
+            when (response) {
+                is NetworkResponse.Success -> {
+                    Toast.makeText(context, "Film başarıyla sepete eklendi!", Toast.LENGTH_SHORT).show()
+                }
+                is NetworkResponse.Error -> {
+                    Toast.makeText(context, "Film eklenemedi: $response", Toast.LENGTH_SHORT).show()
+                }
+                else -> Unit
+            }
+        }
+    }
+
     Scaffold(
         topBar = {
             DetailScreenCustomTopAppBar(onBackClick = { navController.popBackStack() })
@@ -324,7 +346,20 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(50f),
+                        .weight(50f)
+                        .clickable {
+                            viewModel.insertMovieCard(
+                                name = film.name,
+                                image = film.image,
+                                price = film.price,
+                                category = film.category,
+                                rating = film.rating,
+                                year = film.year,
+                                director = film.director,
+                                description = film.description,
+                                orderAmount = quantity
+                            )
+                        },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF0D47A1)
