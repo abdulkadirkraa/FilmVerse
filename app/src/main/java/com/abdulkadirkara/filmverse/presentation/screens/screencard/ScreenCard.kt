@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -25,12 +26,15 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -78,14 +82,14 @@ fun ScreenCard(
             }
             is CardUIState.Success -> {
                 val movieList = (movieCardState as CardUIState.Success<List<FilmCardItem>>).data
-                MovieStateSuccess(paddingValues, movieList)
+                MovieStateSuccess(paddingValues, movieList, viewModel)
             }
         }
     }
 }
 
 @Composable
-fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem>){
+fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem>, viewModel: ScreenCardViewModel){
     val selectedStates = remember { mutableStateMapOf<Int, Boolean>() }
     LazyColumn(
         modifier = Modifier
@@ -96,15 +100,12 @@ fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem
             //placeholder expandable sepete özel indirimi ekle
         }
         itemsIndexed(movieList) { index, movie ->
-            // Varsayılan olarak seçili olmayan bir durum belirliyoruz.
-            val isChecked = selectedStates[index] ?: false
-
+            val isChecked = selectedStates[index] ?: true
             MovieCardItem(
                 movie = movie,
                 isChecked = isChecked,
-                onCheckedChange = { isSelected ->
-                    selectedStates[index] = isSelected
-                }
+                onCheckedChange = { isSelected -> selectedStates[index] = isSelected },
+                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME) } // Silme işlemi için çağrı
             )
         }
 
@@ -115,9 +116,33 @@ fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem
 fun MovieCardItem(
     movie: FilmCardItem,
     isChecked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-){
-    OutlinedCard (
+    onCheckedChange: (Boolean) -> Unit,
+    onDelete: () -> Unit // Silme fonksiyonu için lambda
+) {
+    var showDialog by remember { mutableStateOf(false) } // Dialog kontrolü
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDialog = false
+                    onDelete() // Silme işlemi
+                }) {
+                    Text("Evet")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDialog = false }) {
+                    Text("Hayır")
+                }
+            },
+            title = { Text("Silme İşlemi") },
+            text = { Text("${movie.name} adlı ürünü silmek istediğinizden emin misiniz?") }
+        )
+    }
+
+    OutlinedCard(
         modifier = Modifier.fillMaxWidth().padding(8.dp),
         shape = RoundedCornerShape(10.dp),
     ) {
@@ -130,13 +155,13 @@ fun MovieCardItem(
                 checked = isChecked,
                 onCheckedChange = { onCheckedChange(it) }
             )
-            val imageUrl = ApiConstants.BASE_URL + movie.image
+            val imageUrl = ApiConstants.IMAGE_BASE_URL + movie.image
             AsyncImage(
                 model = imageUrl,
                 contentDescription = null,
                 modifier = Modifier.padding(8.dp)
             )
-            Column (
+            Column(
                 modifier = Modifier.padding(8.dp)
             ) {
                 Text(
@@ -164,12 +189,11 @@ fun MovieCardItem(
                     color = Color.Gray,
                 )
             }
-            Column (
+            Column(
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.SpaceEvenly,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                //del icon ve totalprice
                 OutlinedCard(
                     modifier = Modifier.size(48.dp),
                     shape = RoundedCornerShape(10.dp),
@@ -177,7 +201,7 @@ fun MovieCardItem(
                         contentColor = Color(0xFF0D47A1),
                     )
                 ) {
-                    IconButton(onClick = {  }) {
+                    IconButton(onClick = { showDialog = true }) { // Dialog açılır
                         Icon(Icons.Filled.Delete, contentDescription = "")
                     }
                 }

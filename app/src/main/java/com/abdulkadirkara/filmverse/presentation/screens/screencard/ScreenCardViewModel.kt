@@ -41,7 +41,6 @@ class ScreenCardViewModel @Inject constructor(
     private fun getMovieCard(userName: String) {
         viewModelScope.launch {
             getMovieCartUseCase(userName = userName).collect { it ->
-                Log.e("ScreenCardViewModel", "getMovieCard: $it")
                 it.onError {
                     _movieCardState.value = CardUIState.Error(it.toString())
                 }.onEmpty {
