@@ -1,9 +1,11 @@
 package com.abdulkadirkara.data.remote.service
 
 import com.abdulkadirkara.data.remote.ApiConstants
+import com.abdulkadirkara.data.remote.dto.CardResponse
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
 import com.abdulkadirkara.data.remote.dto.crud.CRUDResponse
 import com.abdulkadirkara.data.remote.dto.filmCard.FilmCardResponse
+import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -30,8 +32,9 @@ interface ApiService {
         @Field("userName") userName: String
     ) : CRUDResponse
 
-    @GET(ApiConstants.GET_MOVIE_CART_END_POINT)
-    suspend fun getMovieCart(@Query("userName") userName: String ) : FilmCardResponse
+    @POST(ApiConstants.GET_MOVIE_CART_END_POINT)
+    @FormUrlEncoded
+    suspend fun getMovieCart(@Field("userName") userName: String = ApiConstants.USER_NAME ) : FilmCardResponse
 
     @POST(ApiConstants.DELETE_MOVIE_END_POINT)
     @FormUrlEncoded

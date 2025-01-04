@@ -5,6 +5,7 @@ import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.base.BaseDataSource
 import com.abdulkadirkara.data.di.coroutines.DispatcherType
 import com.abdulkadirkara.data.di.coroutines.FilmVerseDispatchers
+import com.abdulkadirkara.data.remote.dto.CardResponse
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
 import com.abdulkadirkara.data.remote.dto.crud.CRUDResponse
 import com.abdulkadirkara.data.remote.dto.filmCard.FilmCardResponse
