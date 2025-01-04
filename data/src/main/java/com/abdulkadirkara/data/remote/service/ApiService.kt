@@ -8,6 +8,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 
 interface ApiService {
 
@@ -26,16 +27,16 @@ interface ApiService {
         @Field("director") director: String,
         @Field("description") description: String,
         @Field("orderAmount") orderAmount: Int,
-        @Field("userName") userName: String = ApiConstants.USER_NAME
+        @Field("userName") userName: String
     ) : CRUDResponse
 
     @GET(ApiConstants.GET_MOVIE_CART_END_POINT)
-    suspend fun getMovieCart(@Field("userName") userName: String = ApiConstants.USER_NAME) : FilmCardResponse
+    suspend fun getMovieCart(@Query("userName") userName: String ) : FilmCardResponse
 
     @POST(ApiConstants.DELETE_MOVIE_END_POINT)
     @FormUrlEncoded
     suspend fun deleteMovie(
         @Field("cartId") cartId: Int,
-        @Field("userName") userName: String = ApiConstants.USER_NAME
+        @Field("userName") userName: String
     ) : CRUDResponse
 }

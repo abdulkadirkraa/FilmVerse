@@ -1,5 +1,6 @@
 package com.abdulkadirkara.data.datasource
 
+import android.util.Log
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.base.BaseDataSource
 import com.abdulkadirkara.data.di.coroutines.DispatcherType
@@ -30,24 +31,32 @@ class RemoteDataSourceImpl @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int
+        orderAmount: Int,
+        userName: String
     ): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
-            safeApiCall { apiService.insertMovie(
-                name, image, price, category, rating, year, director, description, orderAmount
+            val response = safeApiCall {
+                apiService.insertMovie(name, image, price, category, rating, year, director, description, orderAmount, userName
             ) }
+            Log.e("RemoteDataSourceImpl", "Response insert: $response")
+            response
         }
     }
 
-    override suspend fun getMovieCart(): NetworkResponse<FilmCardResponse> {
+    override suspend fun getMovieCart(userName: String): NetworkResponse<FilmCardResponse> {
         return ioDispatcherCall(ioDispatcher){
-            safeApiCall { apiService.getMovieCart() }
+            val response = safeApiCall {
+                Log.e("RemoteDataSourceImpl", "Response getMovieCart: $userName")
+                apiService.getMovieCart(userName)
+            }
+            Log.e("RemoteDataSourceImpl", "Response getMovieCart: $response")
+            response
         }
     }
 
-    override suspend fun deleteMovie(cartId: Int): NetworkResponse<CRUDResponse> {
+    override suspend fun deleteMovie(cartId: Int, userName: String): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
-            safeApiCall { apiService.deleteMovie(cartId) }
+            safeApiCall { apiService.deleteMovie(cartId, userName) }
         }
     }
 }

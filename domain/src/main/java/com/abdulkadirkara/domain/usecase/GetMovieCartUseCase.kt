@@ -9,6 +9,6 @@ import javax.inject.Inject
 class GetMovieCartUseCase @Inject constructor(
     private val filmVerseRepository: FilmVerseRepository
 ) {
-    suspend operator fun invoke(): Flow<NetworkResponse<List<FilmCardItem>>> =
-        filmVerseRepository.getMovieCart()
+    suspend operator fun invoke(userName: String): Flow<NetworkResponse<List<FilmCardItem>>> =
+        filmVerseRepository.getMovieCart(userName)
 }

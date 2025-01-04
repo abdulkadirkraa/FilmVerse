@@ -21,8 +21,9 @@ interface FilmVerseRepository {
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int
+        orderAmount: Int,
+        userName: String
         ) : Flow<NetworkResponse<CRUDResponseUI>>
-    suspend fun getMovieCart() : Flow<NetworkResponse<List<FilmCardItem>>>
-    suspend fun deleteMovie(cartId: Int) : Flow<NetworkResponse<CRUDResponseUI>>
+    suspend fun getMovieCart(userName: String) : Flow<NetworkResponse<List<FilmCardItem>>>
+    suspend fun deleteMovie(cartId: Int, userName: String) : Flow<NetworkResponse<CRUDResponseUI>>
 }

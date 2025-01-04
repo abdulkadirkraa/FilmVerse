@@ -18,9 +18,10 @@ class InsertMovieUseCase @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int
+        orderAmount: Int,
+        userName: String
     ): Flow<NetworkResponse<CRUDResponseUI>> =
         filmVerseRepository.insertMovie(
-            name, image, price, category, rating, year, director, description, orderAmount
+            name, image, price, category, rating, year, director, description, orderAmount, userName
         )
 }

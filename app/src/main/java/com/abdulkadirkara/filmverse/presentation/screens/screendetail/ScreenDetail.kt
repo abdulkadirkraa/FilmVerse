@@ -1,5 +1,6 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screendetail
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.slideInVertically
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -37,12 +39,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -63,6 +67,7 @@ import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.filmverse.R
+import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
 @Composable
@@ -70,6 +75,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
+    val showDialog = remember { mutableStateOf(false) }
 
     val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
 
@@ -78,14 +84,28 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
         insertMovieResult?.let { response ->
             when (response) {
                 is NetworkResponse.Success -> {
-                    Toast.makeText(context, "Film başarıyla sepete eklendi!", Toast.LENGTH_SHORT).show()
+                    showDialog.value = true
                 }
                 is NetworkResponse.Error -> {
-                    Toast.makeText(context, "Film eklenemedi: $response", Toast.LENGTH_SHORT).show()
+                    Log.e("ScreenDetail", "Hata: response")
                 }
                 else -> Unit
             }
         }
+    }
+
+    if (showDialog.value) {
+        SuccessDialog(
+            onDismiss = { showDialog.value = false },
+            onNavigateToHome = {
+                showDialog.value = false
+                navController.popBackStack()
+            },
+            onNavigateToScreenCard = {
+                showDialog.value = false
+                navController.navigate(Screens.ScreenCard.route)
+            }
+        )
     }
 
     Scaffold(
@@ -357,7 +377,8 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                                 year = film.year,
                                 director = film.director,
                                 description = film.description,
-                                orderAmount = quantity
+                                orderAmount = quantity,
+                                userName = ApiConstants.USER_NAME
                             )
                         },
                     shape = RoundedCornerShape(10.dp),
@@ -409,9 +430,9 @@ fun AnimatedCounter(
                 transitionSpec = {
                     slideInVertically { it } togetherWith slideOutVertically { -it }
                 }, label = ""
-            ) { char ->
+            ) { c ->
                 Text(
-                    text = char.toString(),
+                    text = c.toString(),
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -421,4 +442,31 @@ fun AnimatedCounter(
             }
         }
     }
+}
+
+@Composable
+fun SuccessDialog(
+    onDismiss: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToScreenCard: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = {
+            Text(text = "Başarılı")
+        },
+        text = {
+            Text(text = "Sepete ekleme işlemi başarıyla tamamlandı. Ne yapmak istersiniz?")
+        },
+        confirmButton = {
+            TextButton(onClick = onNavigateToHome) {
+                Text("Ana Ekrana Dön")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onNavigateToScreenCard) {
+                Text("ScreenCard Ekranına Git")
+            }
+        }
+    )
 }

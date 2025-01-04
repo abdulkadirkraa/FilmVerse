@@ -17,9 +17,10 @@ interface RemoteDataSource {
         director: String,
         description: String,
         orderAmount: Int,
+        userName: String
     ): NetworkResponse<CRUDResponse>
 
-    suspend fun getMovieCart(): NetworkResponse<FilmCardResponse>
-    suspend fun deleteMovie(cartId: Int): NetworkResponse<CRUDResponse>
+    suspend fun getMovieCart(userName: String): NetworkResponse<FilmCardResponse>
+    suspend fun deleteMovie(cartId: Int, userName: String): NetworkResponse<CRUDResponse>
 
 }

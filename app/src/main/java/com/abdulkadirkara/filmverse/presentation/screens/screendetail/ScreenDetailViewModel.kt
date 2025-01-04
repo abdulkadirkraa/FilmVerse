@@ -5,14 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
-import com.abdulkadirkara.common.networkResponse.onEmpty
-import com.abdulkadirkara.common.networkResponse.onError
-import com.abdulkadirkara.common.networkResponse.onSuccess
 import com.abdulkadirkara.domain.model.CRUDResponseUI
-import com.abdulkadirkara.domain.model.FilmCardItem
-import com.abdulkadirkara.domain.usecase.GetMovieCartUseCase
 import com.abdulkadirkara.domain.usecase.InsertMovieUseCase
-import com.abdulkadirkara.filmverse.presentation.screens.screencard.CardUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -35,13 +29,15 @@ class ScreenDetailViewModel @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int
+        orderAmount: Int,
+        userName: String
     ){
         viewModelScope.launch {
             insertMovieUseCase(
-                name, image, price, category, rating, year, director, description, orderAmount
+                name, image, price, category, rating, year, director, description, orderAmount, userName
             ).collect{
                 _insertMovieCardResult.value = it
+                Log.e("ScreenDetailViewModel", "insertMovieCard: $it")
             }
         }
     }
