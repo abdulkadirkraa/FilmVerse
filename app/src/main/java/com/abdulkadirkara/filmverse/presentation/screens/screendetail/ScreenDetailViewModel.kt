@@ -1,6 +1,5 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screendetail
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -30,10 +29,9 @@ class ScreenDetailViewModel @Inject constructor(
     val cartItemCount: StateFlow<Int> = _cartItemCount
 
     init {
-        getCartItemCountUseCase
+        getCartItemCount()
     }
 
-    // Sepet item sayısını al
     fun getCartItemCount() {
         viewModelScope.launch {
             getCartItemCountUseCase.execute().collect { count ->
@@ -42,10 +40,10 @@ class ScreenDetailViewModel @Inject constructor(
         }
     }
 
-    // Sepet item sayısını güncelle
     fun updateCartItemCount(newCount: Int) {
         viewModelScope.launch {
             updateCartItemCountUseCase.execute(newCount)
+            _cartItemCount.value = newCount
         }
     }
 

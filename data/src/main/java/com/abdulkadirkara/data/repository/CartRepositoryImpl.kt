@@ -19,7 +19,6 @@ class CartRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCartItemCount(newCount: Int) {
-        // IO işlemi olduğu için ioDispatcher üzerinde çalıştırıyoruz
         withContext(ioDispatcher) {
             cartDataStore.updateCartItemCount(newCount)
         }

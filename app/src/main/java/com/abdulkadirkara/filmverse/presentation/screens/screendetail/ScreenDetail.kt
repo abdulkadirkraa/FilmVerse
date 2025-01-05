@@ -30,7 +30,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Campaign
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -39,7 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -47,7 +45,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -80,11 +77,10 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
     val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
     val cartItemCount = viewModel.cartItemCount.collectAsState()
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(key1 = cartItemCount.value) {
         viewModel.getCartItemCount()
     }
 
-    // Sepete ekleme sonucu
     LaunchedEffect(insertMovieResult) {
         insertMovieResult?.let { response ->
             when (response) {
@@ -108,6 +104,118 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                 onBackClick = { navController.popBackStack() },
                 goToCardScreen = { navController.navigate(Screens.ScreenCard.route) }
             )
+        },
+        bottomBar = {
+            Column (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(vertical = 12.dp, horizontal = 16.dp)
+            ){
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickable {
+                                if (quantity > 1) {
+                                    quantity--
+                                    totalPrice.intValue = film.price * quantity
+                                }else {
+                                    Toast.makeText(context, "En az bir adet seçili olmalı", Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF0D47A1),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_minus_48),
+                            contentDescription = "Eksilt",
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    AnimatedCounter(count = quantity)
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Card(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clickable {
+                                quantity++
+                                totalPrice.intValue = film.price * quantity
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF0D47A1),
+                            contentColor = Color.White
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Add,
+                            contentDescription = "Arttır",
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+
+                // Fiyat Bilgisi ve Sepete Ekle
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 8.dp, end = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "${totalPrice.intValue} TL",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        modifier = Modifier.padding(4.dp).weight(50f)
+                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(50f)
+                            .clickable {
+                                viewModel.insertMovieCard(
+                                    name = film.name,
+                                    image = film.image,
+                                    price = film.price,
+                                    category = film.category,
+                                    rating = film.rating,
+                                    year = film.year,
+                                    director = film.director,
+                                    description = film.description,
+                                    orderAmount = quantity,
+                                    userName = ApiConstants.USER_NAME
+                                )
+                            },
+                        shape = RoundedCornerShape(10.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFF0D47A1)
+                        )
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp),
+                            text = "Sepete Ekle",
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
+            }
         }
     ) { paddingValues ->
         val verticalState = rememberScrollState()
@@ -126,8 +234,8 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                 AsyncImage(
                     model = imageUrl,
                     modifier = Modifier
-                        .width(200.dp)
-                        .height(300.dp)
+                        .width(150.dp)
+                        .height(200.dp)
                         .weight(50f),
                     contentDescription = "Film Görseli",
                     contentScale = ContentScale.FillHeight,
@@ -180,15 +288,9 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                 }
             }
 
-            HorizontalDivider(
-                color = Color.Gray,
-                thickness = 1.dp,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
-
             Spacer(
                 modifier = Modifier
-                    .height(16.dp)
+                    .height(8.dp)
                     .fillMaxWidth()
                     .background(Color.LightGray)
             )
@@ -249,7 +351,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
             }
             Spacer(
                 modifier = Modifier
-                    .height(16.dp)
+                    .height(8.dp)
                     .fillMaxWidth()
                     .background(Color.LightGray)
             )
@@ -280,113 +382,10 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
             }
             Spacer(
                 modifier = Modifier
-                    .height(16.dp)
+                    .height(8.dp)
                     .fillMaxWidth()
                     .background(Color.LightGray)
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Card(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable {
-                            if (quantity > 1) {
-                                quantity--
-                                totalPrice.intValue = film.price * quantity
-                            }else {
-                                Toast.makeText(context, "En az bir adet seçili olmalı", Toast.LENGTH_SHORT).show()
-                            }
-                        },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF0D47A1),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_minus_48),
-                        contentDescription = "Eksilt",
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-                Spacer(modifier = Modifier.width(16.dp))
-                AnimatedCounter(count = quantity)
-                Spacer(modifier = Modifier.width(16.dp))
-                Card(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clickable {
-                            quantity++
-                            totalPrice.intValue = film.price * quantity
-                        },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF0D47A1),
-                        contentColor = Color.White
-                    )
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Arttır",
-                        modifier = Modifier.padding(12.dp)
-                    )
-                }
-            }
-
-            // Fiyat Bilgisi ve Sepete Ekle
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 8.dp, end = 8.dp, bottom = paddingValues.calculateBottomPadding()),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = "${totalPrice.intValue} TL",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.padding(4.dp).weight(50f)
-                )
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(50f)
-                        .clickable {
-                            viewModel.insertMovieCard(
-                                name = film.name,
-                                image = film.image,
-                                price = film.price,
-                                category = film.category,
-                                rating = film.rating,
-                                year = film.year,
-                                director = film.director,
-                                description = film.description,
-                                orderAmount = quantity,
-                                userName = ApiConstants.USER_NAME
-                            )
-                        },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF0D47A1)
-                    )
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        text = "Sepete Ekle",
-                        color = Color.White,
-                        textAlign = TextAlign.Center,
-                        fontSize = 16.sp
-                    )
-                }
-            }
         }
 
     }

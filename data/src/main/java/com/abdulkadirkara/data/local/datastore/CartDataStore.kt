@@ -13,17 +13,17 @@ import javax.inject.Inject
 
 val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "app_preferences")
 
-class CartDataStore @Inject constructor(@ApplicationContext private val context: Context) {
+class CartDataStore @Inject constructor(private val context: Context) {
 
-    private val CART_ITEM_COUNT_KEY = intPreferencesKey("cart_item_count")
+    companion object {
+        private val CART_ITEM_COUNT_KEY = intPreferencesKey("cart_item_count")
+    }
 
-    // Get the cart item count
     val cartItemCountFlow: Flow<Int> = context.dataStore.data
         .map { preferences ->
             preferences[CART_ITEM_COUNT_KEY] ?: 0
         }
 
-    // Update the cart item count
     suspend fun updateCartItemCount(newCount: Int) {
         context.dataStore.edit { preferences ->
             preferences[CART_ITEM_COUNT_KEY] = newCount
