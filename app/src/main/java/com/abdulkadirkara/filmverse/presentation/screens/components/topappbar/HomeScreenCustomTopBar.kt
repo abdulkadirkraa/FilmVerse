@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cast
@@ -28,23 +27,33 @@ import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 
 @Composable
-fun HomeScreenCustomTopBar() {
+fun HomeScreenCustomTopBar(
+    onFilterClick: () -> Unit,
+    //onSearchClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
-                alpha = 0.95f // Hafif saydamlık
-                shadowElevation = 8.dp.toPx() // Gölge efekti
+                alpha = 0.95f
+                shadowElevation = 8.dp.toPx()
             }
-            .background(Color.Black.copy(alpha = 0.5f)), // Hafif siyah arka plan
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .background(Color.Black.copy(alpha = 0.5f))
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Spacer(modifier = Modifier.height(4.dp))
+        // Cast Icon
         Icon(
-            Icons.Rounded.Cast, contentDescription = "Cast",
+            imageVector = Icons.Rounded.Cast,
+            contentDescription = "Cast",
             tint = Color.White,
+            modifier = Modifier.padding(start = 8.dp).weight(10f)
         )
+
+        // Spacer to push the text to the center
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Filmverse Text
         Text(
             text = stringResource(R.string.app_name),
             textAlign = TextAlign.Center,
@@ -52,17 +61,22 @@ fun HomeScreenCustomTopBar() {
             fontWeight = FontWeight.Bold,
             color = Color.White,
             fontFamily = babasNeue,
+            modifier = Modifier.weight(70f)
         )
+
+        // Spacer to balance the space after the text
+        Spacer(modifier = Modifier.weight(1f))
+
+        // Search and Filter Icons
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.End,
-            modifier = Modifier.padding(end = 4.dp)
+            horizontalArrangement = Arrangement.spacedBy(2.dp), // Reduce space between icons
+            modifier = Modifier.padding(end = 4.dp).weight(20f)
         ) {
-
-            IconButton(onClick = { /* Handle search icon click */ }) {
+            IconButton(onClick = { /*onSearchClick*/ }) {
                 Icon(Icons.Rounded.Search, contentDescription = "Search", tint = Color.White)
             }
-            IconButton(onClick = { /* Handle filter icon click */ }) {
+            IconButton(onClick = onFilterClick ) {
                 Icon(Icons.Rounded.FilterList, contentDescription = "Filter", tint = Color.White)
             }
         }

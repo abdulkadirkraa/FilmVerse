@@ -4,8 +4,11 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -18,17 +21,28 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
@@ -36,8 +50,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -59,7 +76,9 @@ import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 import com.google.gson.Gson
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ScreenHome(
@@ -68,24 +87,123 @@ fun ScreenHome(
 ) {
     val imageState = viewModel.imageState.observeAsState(HomeUIState.Loading)
     val categoryState = viewModel.categoryState.observeAsState(HomeUIState.Loading)
-    val selectedCategory = viewModel.selectedCategory.observeAsState().value
-    val movieState = viewModel.movieState.observeAsState(HomeUIState.Loading)
+    val filteredMoviesState = viewModel.filteredMovies.observeAsState(HomeUIState.Loading)
+    val bottomSheetState = rememberModalBottomSheetState()
+    val coroutineScope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    val selectedCategories by viewModel.selectedCategories
+    val selectedDirectors by viewModel.selectedDirectors
+    val selectedRating by viewModel.selectedRating
+    val verticalState = rememberScrollState()
+
+    LaunchedEffect(
+        selectedCategories,
+        selectedDirectors,
+        selectedRating
+    ) {
+        viewModel.applyFilters()
+    }
+
+    val isFilterSelected by viewModel.isFilterSelected
 
     Scaffold(
         topBar = {
-            HomeScreenCustomTopBar()
+            HomeScreenCustomTopBar(
+                onFilterClick = {
+                    showBottomSheet = true
+                }
+            )
         }
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
         ) {
-            //image state'ine bakar viewpager yapıyı çağırır
+            if (showBottomSheet){
+                ModalBottomSheet(
+                    sheetState = bottomSheetState,
+                    onDismissRequest = { coroutineScope.launch { showBottomSheet = false } },
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 16.dp,
+                    dragHandle = {
+                        Box(
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .width(75.dp)
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(MaterialTheme.colorScheme.primary)
+                                .align(Alignment.CenterHorizontally)
+                        )
+                    }
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp).verticalScroll(verticalState),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (isFilterSelected) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
+                                TextButton(onClick = {
+                                    viewModel.clearFilters() // Filtreleri sıfırlamak için
+                                    showBottomSheet = false
+                                }) {
+                                    Text(text = "Tümünü Kaldır", color = MaterialTheme.colorScheme.primary)
+                                }
+                            }
+                        }
+
+                        Text(text = "Kategori Seçin", style = MaterialTheme.typography.titleMedium)
+                        FilterChipGroup(
+                            categories = listOf("Action", "Drama", "Science Fiction", "Fantastic"),
+                            selectedCategories = selectedCategories,
+                            onCategorySelected = { category ->
+                                viewModel.updateSelectedCategories(category)
+                            },
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(text = "Yönetmen Seçin", style = MaterialTheme.typography.titleMedium)
+                        FilterChipGroup(
+                            categories = listOf("J.J. Abrams", "Baz Luhrmann", "Terry Gilliam", "David Fincher", "Peter Jackson",
+                                "Todd Phillips", "Chris Columbus", "Chad Stahelski", "Brian De Palma", "Roman Polanski",
+                                "Denis Villeneuve", "Christopher Nolan", "Quentin Tarantino"
+                            ),
+                            selectedCategories = selectedDirectors,
+                            onCategorySelected = { director ->
+                                viewModel.updateSelectedDirectors(director)
+                            }
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Text(text = "Rating: ${selectedRating.toInt()}", style = MaterialTheme.typography.titleMedium)
+                        Slider(
+                            value = selectedRating,
+                            onValueChange = { rating -> viewModel.updateSelectedRating(rating) },
+                            valueRange = 0f..10f,
+                            steps = 10,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(onClick = {
+                            viewModel.applyFilters()
+                            showBottomSheet = false
+                        }) {
+                            Text("Uygula")
+                        }
+                    }
+                }
+            }
             HomeScreenImageState(imageState)
-            //categori state'ine bakarak card yapısını çağırır
-            HomeScreenCategoryState(categoryState, viewModel, selectedCategory)
-            //HomeScreenMovies
-            HomeScreenMoviesState(movieState, navController)
+            HomeScreenCategoryState(categoryState, viewModel)
+            HomeScreenMoviesState(filteredMoviesState, navController)
         }
     }
 }
@@ -163,7 +281,6 @@ fun HomeScreenViewPager(imageList: List<FilmImageUI>) {
 fun HomeScreenCategoryState(
     categoryState: State<HomeUIState<List<FilmCategoryUI>>>,
     viewModel: ScreenHomeViewModel,
-    selectedCategory: FilmCategoryUI?
 ) {
     when (categoryState.value) {
         is HomeUIState.Empty -> LoadingComponent()
@@ -242,8 +359,6 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navC
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardUI>>).data
             HomeScreenMovies(movies, {
                 //onFavoriteClick
-            }, {
-                //addToCartClick
             },{
                 //onItemClicked
                 val json = Gson().toJson(it)
@@ -257,7 +372,6 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navC
 fun HomeScreenMovies(
     films: List<FilmCardUI>,
     onFavoriteClick: (FilmCardUI) -> Unit,
-    onAddToCartClick: (FilmCardUI) -> Unit,
     onItemClicked: (FilmCardUI) -> Unit
 ) {
     val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
@@ -272,7 +386,6 @@ fun HomeScreenMovies(
             FilmCardItem(
                 film = film,
                 onFavoriteClick = { onFavoriteClick(it) },
-                onAddToCartClick = { onAddToCartClick(it) },
                 onItemClicked = { onItemClicked(it) }
             )
         }
@@ -283,7 +396,6 @@ fun HomeScreenMovies(
 fun FilmCardItem(
     film: FilmCardUI,
     onFavoriteClick: (FilmCardUI) -> Unit,
-    onAddToCartClick: (FilmCardUI) -> Unit,
     onItemClicked: (FilmCardUI) -> Unit
 ) {
     Card(
@@ -381,4 +493,41 @@ fun FilmCardItem(
     }
 }
 
-
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun FilterChipGroup(
+    categories: List<String>,
+    selectedCategories: Set<String>,
+    onCategorySelected: (Set<String>) -> Unit
+) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        verticalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        categories.forEach { category ->
+            FilterChip(
+                selected = selectedCategories.contains(category),
+                onClick = {
+                    val updatedSelection = if (selectedCategories.contains(category)) {
+                        selectedCategories - category
+                    } else {
+                        selectedCategories + category
+                    }
+                    onCategorySelected(updatedSelection)
+                },
+                label = { Text(text = category) },
+                leadingIcon = if (selectedCategories.contains(category)) {
+                    {
+                        Icon(
+                            imageVector = Icons.Filled.Done,
+                            contentDescription = "Selected",
+                            modifier = Modifier.size(FilterChipDefaults.IconSize)
+                        )
+                    }
+                } else null,
+                modifier = Modifier.padding(2.dp)
+            )
+        }
+    }
+}
