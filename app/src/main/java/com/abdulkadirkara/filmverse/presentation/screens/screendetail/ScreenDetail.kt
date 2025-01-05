@@ -43,6 +43,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
@@ -75,16 +76,21 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
-    val showDialog = remember { mutableStateOf(false) }
 
     val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
+    val cartItemCount = viewModel.cartItemCount.collectAsState()
+
+    LaunchedEffect(Unit) {
+        viewModel.getCartItemCount()
+    }
 
     // Sepete ekleme sonucu
     LaunchedEffect(insertMovieResult) {
         insertMovieResult?.let { response ->
             when (response) {
                 is NetworkResponse.Success -> {
-                    showDialog.value = true
+                    val newCount = cartItemCount.value + quantity
+                    viewModel.updateCartItemCount(newCount)
                 }
                 is NetworkResponse.Error -> {
                     Log.e("ScreenDetail", "Hata: response")
@@ -94,23 +100,14 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
         }
     }
 
-    if (showDialog.value) {
-        SuccessDialog(
-            onDismiss = { showDialog.value = false },
-            onNavigateToHome = {
-                showDialog.value = false
-                navController.popBackStack()
-            },
-            onNavigateToScreenCard = {
-                showDialog.value = false
-                navController.navigate(Screens.ScreenCard.route)
-            }
-        )
-    }
-
     Scaffold(
         topBar = {
-            DetailScreenCustomTopAppBar(onBackClick = { navController.popBackStack() })
+            DetailScreenCustomTopAppBar(
+                title = film.name,
+                cartItemCount = cartItemCount.value,
+                onBackClick = { navController.popBackStack() },
+                goToCardScreen = { navController.navigate(Screens.ScreenCard.route) }
+            )
         }
     ) { paddingValues ->
         val verticalState = rememberScrollState()
@@ -153,13 +150,6 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                                 .fillMaxSize()
                         )
                     }
-                    Text(
-                        text = film.name,
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 24.sp,
-                        color = Color.Black,
-                        modifier = Modifier.padding(bottom = 2.dp)
-                    )
                     Text(
                         text = film.category,
                         fontSize = 20.sp,
@@ -442,31 +432,4 @@ fun AnimatedCounter(
             }
         }
     }
-}
-
-@Composable
-fun SuccessDialog(
-    onDismiss: () -> Unit,
-    onNavigateToHome: () -> Unit,
-    onNavigateToScreenCard: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = { onDismiss() },
-        title = {
-            Text(text = "Başarılı")
-        },
-        text = {
-            Text(text = "Sepete ekleme işlemi başarıyla tamamlandı. Ne yapmak istersiniz?")
-        },
-        confirmButton = {
-            TextButton(onClick = onNavigateToHome) {
-                Text("Ana Ekrana Dön")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onNavigateToScreenCard) {
-                Text("ScreenCard Ekranına Git")
-            }
-        }
-    )
 }

@@ -11,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -18,41 +20,72 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 
 @Composable
-fun DetailScreenCustomTopAppBar(onBackClick: () -> Unit){
+fun DetailScreenCustomTopAppBar(
+    title: String,
+    cartItemCount: Int,
+    onBackClick: () -> Unit,
+    goToCardScreen: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(Color.White)
-            .padding(4.dp),
+            .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceAround
     ) {
-        IconButton(onClick = onBackClick) { // Geri tuşu
+        IconButton(onClick = onBackClick) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Geri ok simgesi
                 contentDescription = "Back"
             )
         }
-        Text(text = "Detail Screen")
-        Row (
+
+        Text(
+            text = title,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
+            fontFamily = babasNeue,
+            modifier = Modifier
+                .weight(1f) // Başlık ortalanacak
+                .padding(start = 16.dp)
+        )
+
+        Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.End,
-            modifier = Modifier.padding(4.dp)
-        ){
-            IconButton(onClick = { } ) {
-                Icon(
-                    imageVector = Icons.Filled.ShoppingCart,
-                    contentDescription = "Cart"
-                )
+            modifier = Modifier
+                .padding(start = 8.dp)
+        ) {
+            BadgedBox(
+                badge = {
+                    if (cartItemCount > 0){
+                        Badge(
+                            containerColor = Color.Red,
+                            contentColor = Color.Black
+                        ){
+                            Text(text = "$cartItemCount")
+                        }
+                    }
+                }
+            ) {
+                IconButton(onClick = goToCardScreen) {
+                    Icon(Icons.Filled.ShoppingCart, contentDescription = "cart")
+                }
             }
-            Spacer(modifier = Modifier.width(4.dp))
-            IconButton(onClick = { } ) {
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            IconButton(onClick = { /* Paylaş işlevini buraya ekleyin */ }) {
                 Icon(
                     imageVector = Icons.Filled.Share,
-                    contentDescription = "Cart"
+                    contentDescription = "Share"
                 )
             }
         }

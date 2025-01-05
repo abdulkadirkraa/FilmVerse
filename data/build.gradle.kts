@@ -56,4 +56,6 @@ dependencies {
     implementation(libs.converter.gson)
     //OkHttp
     implementation(libs.okhttp)
+    //DataStore
+    implementation(libs.androidx.datastore.preferences)
 }

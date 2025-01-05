@@ -1,6 +1,8 @@
 package com.abdulkadirkara.data.di.repository
 
+import com.abdulkadirkara.data.repository.CartRepositoryImpl
 import com.abdulkadirkara.data.repository.FilmVerseRepositoryImpl
+import com.abdulkadirkara.domain.repository.CartRepository
 import com.abdulkadirkara.domain.repository.FilmVerseRepository
 import dagger.Binds
 import dagger.Module
@@ -13,5 +15,9 @@ import dagger.hilt.android.scopes.ViewModelScoped
 abstract class RepositoryModule {
     @Binds
     @ViewModelScoped
-    abstract fun bindRepository(repositoryImpl: FilmVerseRepositoryImpl) : FilmVerseRepository
+    abstract fun bindFilmVerseRepository(repositoryImpl: FilmVerseRepositoryImpl) : FilmVerseRepository
+
+    @Binds
+    @ViewModelScoped
+    abstract fun bindCartRepository(cartRepositoryImpl: CartRepositoryImpl): CartRepository
 }

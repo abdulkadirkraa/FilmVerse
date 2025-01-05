@@ -93,6 +93,7 @@ fun HomeScreenCustomTopBar(
                                 containerColor = Color.Red,
                                 contentColor = Color.Black
                             ) {
+                                Text(text = "$filterCount")
                             }
                         }
                     }
