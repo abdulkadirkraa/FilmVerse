@@ -95,11 +95,13 @@ fun ScreenHome(
     val selectedDirectors by viewModel.selectedDirectors
     val selectedRating by viewModel.selectedRating
     val verticalState = rememberScrollState()
+    val filterCount by viewModel.filterCount
 
     LaunchedEffect(
         selectedCategories,
         selectedDirectors,
-        selectedRating
+        selectedRating,
+        filterCount
     ) {
         viewModel.applyFilters()
     }
@@ -111,7 +113,8 @@ fun ScreenHome(
             HomeScreenCustomTopBar(
                 onFilterClick = {
                     showBottomSheet = true
-                }
+                },
+                filterCount = filterCount
             )
         }
     ) {

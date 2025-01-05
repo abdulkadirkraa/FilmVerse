@@ -2,16 +2,23 @@ package com.abdulkadirkara.filmverse.presentation.screens.components.topappbar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cast
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,7 +36,7 @@ import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 @Composable
 fun HomeScreenCustomTopBar(
     onFilterClick: () -> Unit,
-    //onSearchClick: () -> Unit
+    filterCount: Int
 ) {
     Row(
         modifier = Modifier
@@ -39,7 +46,7 @@ fun HomeScreenCustomTopBar(
                 shadowElevation = 8.dp.toPx()
             }
             .background(Color.Black.copy(alpha = 0.5f))
-            .padding(horizontal = 8.dp, vertical = 4.dp),
+            .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Cast Icon
@@ -76,8 +83,26 @@ fun HomeScreenCustomTopBar(
             IconButton(onClick = { /*onSearchClick*/ }) {
                 Icon(Icons.Rounded.Search, contentDescription = "Search", tint = Color.White)
             }
-            IconButton(onClick = onFilterClick ) {
-                Icon(Icons.Rounded.FilterList, contentDescription = "Filter", tint = Color.White)
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                BadgedBox(
+                    badge = {
+                        if (filterCount > 0) {
+                            Badge(
+                                containerColor = Color.Red,
+                                contentColor = Color.Black
+                            ) {
+                            }
+                        }
+                    }
+                ) {
+                    IconButton(
+                        onClick = onFilterClick
+                    ) {
+                        Icon(Icons.Rounded.FilterList, contentDescription = "Filter", tint = Color.White)
+                    }
+                }
             }
         }
     }
