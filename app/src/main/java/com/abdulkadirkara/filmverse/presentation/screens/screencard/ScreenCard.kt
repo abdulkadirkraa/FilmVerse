@@ -29,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateMapOf
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil3.compose.AsyncImage
+import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardItem
 import com.abdulkadirkara.filmverse.R
@@ -105,7 +107,7 @@ fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem
                 movie = movie,
                 isChecked = isChecked,
                 onCheckedChange = { isSelected -> selectedStates[index] = isSelected },
-                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME) } // Silme işlemi için çağrı
+                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME, movie.orderAmount) } // Silme işlemi için çağrı
             )
         }
 
@@ -117,9 +119,9 @@ fun MovieCardItem(
     movie: FilmCardItem,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    onDelete: () -> Unit // Silme fonksiyonu için lambda
+    onDelete: () -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) } // Dialog kontrolü
+    var showDialog by remember { mutableStateOf(false) }
 
     if (showDialog) {
         AlertDialog(
@@ -127,7 +129,7 @@ fun MovieCardItem(
             confirmButton = {
                 TextButton(onClick = {
                     showDialog = false
-                    onDelete() // Silme işlemi
+                    onDelete()
                 }) {
                     Text("Evet")
                 }
@@ -143,77 +145,84 @@ fun MovieCardItem(
     }
 
     OutlinedCard(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
         shape = RoundedCornerShape(10.dp),
     ) {
         Row(
-            modifier = Modifier.padding(8.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Start
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Checkbox
             Checkbox(
                 checked = isChecked,
-                onCheckedChange = { onCheckedChange(it) }
+                onCheckedChange = { onCheckedChange(it) },
+                modifier = Modifier.weight(0.1f) // Sabit bir alan verildi
             )
-            val imageUrl = ApiConstants.IMAGE_BASE_URL + movie.image
+
+            // Image
             AsyncImage(
-                model = imageUrl,
+                model = ApiConstants.IMAGE_BASE_URL + movie.image,
                 contentDescription = null,
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
+                    .size(80.dp)
+                    .weight(0.2f) // Görsel için ağırlık
             )
+
+            // Film bilgileri (Alt alta)
             Column(
-                modifier = Modifier.padding(8.dp)
+                modifier = Modifier
+                    .padding(8.dp)
+                    .weight(0.5f)
             ) {
                 Text(
                     text = movie.name,
                     fontWeight = FontWeight.SemiBold,
-                    fontSize = 24.sp,
+                    fontSize = 16.sp,
                     color = Color.Black,
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = movie.category,
-                    fontSize = 20.sp,
+                    fontSize = 14.sp,
                     color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "${movie.price}₺",
-                    fontSize = 20.sp,
+                    fontSize = 14.sp,
                     color = Color.Black,
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Text(
                     text = "${movie.orderAmount} adet",
-                    fontSize = 20.sp,
+                    fontSize = 14.sp,
                     color = Color.Gray,
                 )
             }
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.SpaceEvenly,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                OutlinedCard(
-                    modifier = Modifier.size(48.dp),
-                    shape = RoundedCornerShape(10.dp),
-                    colors = CardDefaults.cardColors(
-                        contentColor = Color(0xFF0D47A1),
-                    )
-                ) {
-                    IconButton(onClick = { showDialog = true }) { // Dialog açılır
-                        Icon(Icons.Filled.Delete, contentDescription = "")
-                    }
-                }
 
+            // Silme ve toplam fiyat
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .weight(0.2f)
+                    .padding(start = 8.dp)
+            ) {
+                IconButton(onClick = { showDialog = true }) {
+                    Icon(Icons.Filled.Delete, contentDescription = null)
+                }
                 Text(
                     text = "${(movie.price * movie.orderAmount)}₺",
-                    fontSize = 24.sp,
-                    color = Color.Black,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    fontFamily = babasNeue
+                    color = Color.Black
                 )
             }
         }
     }
 }
+

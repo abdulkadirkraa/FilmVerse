@@ -15,6 +15,7 @@ import com.abdulkadirkara.domain.model.CRUDResponseUI
 import com.abdulkadirkara.domain.model.FilmCardItem
 import com.abdulkadirkara.domain.usecase.DeleteMovieUseCase
 import com.abdulkadirkara.domain.usecase.GetMovieCartUseCase
+import com.abdulkadirkara.domain.usecase.UpdateCartItemCountUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class ScreenCardViewModel @Inject constructor(
     private val getMovieCartUseCase: GetMovieCartUseCase,
     private val deleteMovieUseCase: DeleteMovieUseCase,
+    private val updateCartItemCountUseCase: UpdateCartItemCountUseCase
 ) : ViewModel() {
     private val _movieCardState = MutableLiveData<CardUIState<List<FilmCardItem>>>()
     val movieCardState: LiveData<CardUIState<List<FilmCardItem>>> = _movieCardState
@@ -38,6 +40,12 @@ class ScreenCardViewModel @Inject constructor(
         getMovieCard(ApiConstants.USER_NAME)
     }
 
+    fun updateCartItemCount(newCount: Int) {
+        viewModelScope.launch {
+            updateCartItemCountUseCase.execute(newCount)
+        }
+    }
+
     private fun getMovieCard(userName: String) {
         viewModelScope.launch {
             getMovieCartUseCase(userName = userName).collect { it ->
@@ -48,19 +56,32 @@ class ScreenCardViewModel @Inject constructor(
                     _productCount.value = 0
                 }.onLoading {
                     _movieCardState.value = CardUIState.Loading
-                }.onSuccess {
-                    _movieCardState.value = CardUIState.Success(it)
-                    _productCount.value = it.size
+                }.onSuccess { cartList ->
+                    _movieCardState.value = CardUIState.Success(cartList)
+                    _productCount.value = cartList.sumOf { it.orderAmount }
                 }
             }
         }
     }
 
-    fun deleteMovieCard(cartId: Int, userName: String) {
+    fun deleteMovieCard(cartId: Int, userName: String, orderAmount: Int) {
         viewModelScope.launch {
-            deleteMovieUseCase(cartId, userName).collect {
-                _deleteMovieCardResult.value = it
+            deleteMovieUseCase(cartId, userName).collect { response ->
+                response.onSuccess {
+                    updateProductCount(cartId)
+                    updateCartItemCountUseCase.execute(-orderAmount)
+                }
+                _deleteMovieCardResult.value = response
             }
+        }
+    }
+
+    private fun updateProductCount(cartId: Int) {
+        val currentState = _movieCardState.value
+        if (currentState is CardUIState.Success) {
+            val updatedList = currentState.data.filterNot { it.cartId == cartId }
+            _movieCardState.value = CardUIState.Success(updatedList)
+            _productCount.value = updatedList.sumOf { it.orderAmount }
         }
     }
 
