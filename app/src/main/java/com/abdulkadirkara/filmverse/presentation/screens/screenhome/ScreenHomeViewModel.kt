@@ -32,11 +32,6 @@ class ScreenHomeViewModel @Inject constructor(
 
     private val _categoryState = MutableLiveData<HomeUIState<List<FilmCategoryEntity>>>(HomeUIState.Loading)
     val categoryState: LiveData<HomeUIState<List<FilmCategoryEntity>>> = _categoryState
-    private val _selectedCategory = MutableLiveData<FilmCategoryEntity>()
-    val selectedCategory: LiveData<FilmCategoryEntity> = _selectedCategory
-
-    private val _movieState = MutableLiveData<HomeUIState<List<FilmCardEntity>>>(HomeUIState.Loading)
-    val movieState: LiveData<HomeUIState<List<FilmCardEntity>>> = _movieState
 
     private val _filteredMovies = MutableLiveData<HomeUIState<List<FilmCardEntity>>>(HomeUIState.Loading)
     val filteredMovies: LiveData<HomeUIState<List<FilmCardEntity>>> = _filteredMovies
@@ -45,7 +40,6 @@ class ScreenHomeViewModel @Inject constructor(
     private val _filterCount = mutableStateOf(0)
     val filterCount: State<Int> = _filterCount
 
-    // Diğer filtreleme durumları
     private val _selectedCategories = mutableStateOf<Set<String>>(emptySet())
     val selectedCategories: State<Set<String>> = _selectedCategories
 
@@ -62,7 +56,6 @@ class ScreenHomeViewModel @Inject constructor(
     }
     val isFilterSelected: State<Boolean> = _isFilterSelected
 
-    // Seçilen filtreleri güncelle
     fun updateSelectedCategories(categories: Set<String>) {
         _selectedCategories.value = categories
         updateFilterCount()
@@ -78,7 +71,6 @@ class ScreenHomeViewModel @Inject constructor(
         updateFilterCount()
     }
 
-    // Filtreleme sayısını güncelle
     private fun updateFilterCount() {
         val selectedFilterCount = listOf(
             _selectedCategories.value.size,
@@ -123,7 +115,6 @@ class ScreenHomeViewModel @Inject constructor(
                         FilmCategoryEntity(category = "Tümü", isClicked = true)
                     ) + categories
                     _categoryState.value = HomeUIState.Success(allCategories)
-                    _selectedCategory.value = allCategories.first()
                 }.onError {
                     _categoryState.value = HomeUIState.Error(it.toString())
                 }
@@ -136,15 +127,15 @@ class ScreenHomeViewModel @Inject constructor(
         viewModelScope.launch {
             getAllMoviesUseCase().collect{ it ->
                 it.onEmpty {
-                    _movieState.value = HomeUIState.Empty
+                    _filteredMovies.value = HomeUIState.Empty
                 }.onLoading {
-                    _movieState.value = HomeUIState.Loading
+                    _filteredMovies.value = HomeUIState.Loading
                 }.onSuccess {
-                    _movieState.value = HomeUIState.Success(it)
+                    _filteredMovies.value = HomeUIState.Success(it)
                     allMovies = it
                     applyFilters()
                 }.onError {
-                    _movieState.value = HomeUIState.Error(it.toString())
+                    _filteredMovies.value = HomeUIState.Error(it.toString())
                 }
             }
         }
@@ -157,7 +148,6 @@ class ScreenHomeViewModel @Inject constructor(
                 it.copy(isClicked = it == category)
             }
             _categoryState.value = HomeUIState.Success(updatedCategories)
-            _selectedCategory.value = category
         }
     }
 

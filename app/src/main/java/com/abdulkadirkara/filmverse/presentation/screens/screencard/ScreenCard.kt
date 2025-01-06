@@ -48,7 +48,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.common.constant.ApiImageConstant
-import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
 
 @OptIn(ExperimentalMaterial3Api::class)

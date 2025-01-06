@@ -8,7 +8,6 @@ import com.abdulkadirkara.common.networkResponse.onEmpty
 import com.abdulkadirkara.common.networkResponse.onError
 import com.abdulkadirkara.common.networkResponse.onLoading
 import com.abdulkadirkara.common.networkResponse.onSuccess
-import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.usecase.DeleteMovieUseCase
 import com.abdulkadirkara.domain.usecase.GetMovieCartUseCase
 import com.abdulkadirkara.domain.usecase.UpdateCartItemCountUseCase

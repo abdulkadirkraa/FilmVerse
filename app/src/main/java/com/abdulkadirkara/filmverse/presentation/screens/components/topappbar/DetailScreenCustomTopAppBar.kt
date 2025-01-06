@@ -41,7 +41,7 @@ fun DetailScreenCustomTopAppBar(
     ) {
         IconButton(onClick = onBackClick) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Geri ok simgesi
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back"
             )
         }
@@ -53,7 +53,7 @@ fun DetailScreenCustomTopAppBar(
             color = Color.Black,
             fontFamily = babasNeue,
             modifier = Modifier
-                .weight(1f) // Başlık ortalanacak
+                .weight(1f)
                 .padding(start = 16.dp)
         )
 
@@ -82,7 +82,7 @@ fun DetailScreenCustomTopAppBar(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            IconButton(onClick = { /* Paylaş işlevini buraya ekleyin */ }) {
+            IconButton(onClick = { /**/ }) {
                 Icon(
                     imageVector = Icons.Filled.Share,
                     contentDescription = "Share"

@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun ErrorComponent(
     errorMessage: String,
-    onDialogDismiss: () -> Unit // Dialog kapatıldığında çağrılacak işlev
+    onDialogDismiss: () -> Unit
 ) {
     val context = LocalContext.current
     Box(
@@ -39,7 +39,6 @@ fun ErrorComponent(
             },
             confirmButton = {
                 Button(onClick = {
-                    // Uygulamayı kapatma işlemi
                     (context as? Activity)?.finish()
                 }) {
                     Text(text = "Evet, Uygulamayı Kapat")
@@ -47,7 +46,7 @@ fun ErrorComponent(
             },
             dismissButton = {
                 Button(onClick = {
-                    onDialogDismiss() // Hayır seçeneği için işlem yapılmaz, dialog kapatılır.
+                    onDialogDismiss()
                 }) {
                     Text(text = "Hayır")
                 }
