@@ -1,17 +1,17 @@
 package com.abdulkadirkara.domain.repository
 
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
-import com.abdulkadirkara.domain.model.CRUDResponseUI
+import com.abdulkadirkara.domain.model.CRUDResponseEntity
 import com.abdulkadirkara.domain.model.FilmCardItem
-import com.abdulkadirkara.domain.model.FilmCardUI
-import com.abdulkadirkara.domain.model.FilmCategoryUI
-import com.abdulkadirkara.domain.model.FilmImageUI
+import com.abdulkadirkara.domain.model.FilmCardEntity
+import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmImageEntity
 import kotlinx.coroutines.flow.Flow
 
 interface FilmVerseRepository {
-    suspend fun getAllImages(): Flow<NetworkResponse<List<FilmImageUI>>>
-    suspend fun getAllCategories(): Flow<NetworkResponse<List<FilmCategoryUI>>>
-    suspend fun getAllMovies(): Flow<NetworkResponse<List<FilmCardUI>>>
+    suspend fun getAllImages(): Flow<NetworkResponse<List<FilmImageEntity>>>
+    suspend fun getAllCategories(): Flow<NetworkResponse<List<FilmCategoryEntity>>>
+    suspend fun getAllMovies(): Flow<NetworkResponse<List<FilmCardEntity>>>
     suspend fun insertMovie(
         name: String,
         image: String,
@@ -22,7 +22,7 @@ interface FilmVerseRepository {
         director: String,
         description: String,
         orderAmount: Int
-    ) : Flow<NetworkResponse<CRUDResponseUI>>
+    ) : Flow<NetworkResponse<CRUDResponseEntity>>
     suspend fun getMovieCart(userName: String) : Flow<NetworkResponse<List<FilmCardItem>>>
-    suspend fun deleteMovie(cartId: Int, userName: String) : Flow<NetworkResponse<CRUDResponseUI>>
+    suspend fun deleteMovie(cartId: Int, userName: String) : Flow<NetworkResponse<CRUDResponseEntity>>
 }

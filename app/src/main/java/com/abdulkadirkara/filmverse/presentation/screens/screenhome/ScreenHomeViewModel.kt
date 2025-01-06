@@ -2,7 +2,6 @@ package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,9 +11,9 @@ import com.abdulkadirkara.common.networkResponse.onEmpty
 import com.abdulkadirkara.common.networkResponse.onError
 import com.abdulkadirkara.common.networkResponse.onLoading
 import com.abdulkadirkara.common.networkResponse.onSuccess
-import com.abdulkadirkara.domain.model.FilmCardUI
-import com.abdulkadirkara.domain.model.FilmCategoryUI
-import com.abdulkadirkara.domain.model.FilmImageUI
+import com.abdulkadirkara.domain.model.FilmCardEntity
+import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmImageEntity
 import com.abdulkadirkara.domain.usecase.GetAllCategoriesUseCase
 import com.abdulkadirkara.domain.usecase.GetAllImagesUseCase
 import com.abdulkadirkara.domain.usecase.GetAllMoviesUseCase
@@ -28,20 +27,20 @@ class ScreenHomeViewModel @Inject constructor(
     private val getAllCategoriesUseCase: GetAllCategoriesUseCase,
     private val getAllMoviesUseCase: GetAllMoviesUseCase,
 ) : ViewModel() {
-    private val _imageState = MutableLiveData<HomeUIState<List<FilmImageUI>>>(HomeUIState.Loading)
-    val imageState: LiveData<HomeUIState<List<FilmImageUI>>> = _imageState
+    private val _imageState = MutableLiveData<HomeUIState<List<FilmImageEntity>>>(HomeUIState.Loading)
+    val imageState: LiveData<HomeUIState<List<FilmImageEntity>>> = _imageState
 
-    private val _categoryState = MutableLiveData<HomeUIState<List<FilmCategoryUI>>>(HomeUIState.Loading)
-    val categoryState: LiveData<HomeUIState<List<FilmCategoryUI>>> = _categoryState
-    private val _selectedCategory = MutableLiveData<FilmCategoryUI>()
-    val selectedCategory: LiveData<FilmCategoryUI> = _selectedCategory
+    private val _categoryState = MutableLiveData<HomeUIState<List<FilmCategoryEntity>>>(HomeUIState.Loading)
+    val categoryState: LiveData<HomeUIState<List<FilmCategoryEntity>>> = _categoryState
+    private val _selectedCategory = MutableLiveData<FilmCategoryEntity>()
+    val selectedCategory: LiveData<FilmCategoryEntity> = _selectedCategory
 
-    private val _movieState = MutableLiveData<HomeUIState<List<FilmCardUI>>>(HomeUIState.Loading)
-    val movieState: LiveData<HomeUIState<List<FilmCardUI>>> = _movieState
+    private val _movieState = MutableLiveData<HomeUIState<List<FilmCardEntity>>>(HomeUIState.Loading)
+    val movieState: LiveData<HomeUIState<List<FilmCardEntity>>> = _movieState
 
-    private val _filteredMovies = MutableLiveData<HomeUIState<List<FilmCardUI>>>(HomeUIState.Loading)
-    val filteredMovies: LiveData<HomeUIState<List<FilmCardUI>>> = _filteredMovies
-    private var allMovies: List<FilmCardUI> = emptyList()
+    private val _filteredMovies = MutableLiveData<HomeUIState<List<FilmCardEntity>>>(HomeUIState.Loading)
+    val filteredMovies: LiveData<HomeUIState<List<FilmCardEntity>>> = _filteredMovies
+    private var allMovies: List<FilmCardEntity> = emptyList()
 
     private val _filterCount = mutableStateOf(0)
     val filterCount: State<Int> = _filterCount
@@ -121,7 +120,7 @@ class ScreenHomeViewModel @Inject constructor(
                     _categoryState.value = HomeUIState.Loading
                 }.onSuccess { categories ->
                     val allCategories = listOf(
-                        FilmCategoryUI(category = "Tümü", isClicked = true)
+                        FilmCategoryEntity(category = "Tümü", isClicked = true)
                     ) + categories
                     _categoryState.value = HomeUIState.Success(allCategories)
                     _selectedCategory.value = allCategories.first()
@@ -151,9 +150,9 @@ class ScreenHomeViewModel @Inject constructor(
         }
     }
 
-    fun selectCategory(category: FilmCategoryUI) {
+    fun selectCategory(category: FilmCategoryEntity) {
         if (_categoryState.value is HomeUIState.Success) {
-            val currentState = (_categoryState.value as HomeUIState.Success<List<FilmCategoryUI>>)
+            val currentState = (_categoryState.value as HomeUIState.Success<List<FilmCategoryEntity>>)
             val updatedCategories = currentState.data.map {
                 it.copy(isClicked = it == category)
             }

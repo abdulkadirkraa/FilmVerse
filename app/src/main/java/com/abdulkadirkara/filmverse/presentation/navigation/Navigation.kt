@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.abdulkadirkara.domain.model.FilmCardUI
+import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.filmverse.presentation.screens.screencard.ScreenCard
 import com.abdulkadirkara.filmverse.presentation.screens.screencard.ScreenCardViewModel
 import com.abdulkadirkara.filmverse.presentation.screens.screendetail.ScreenDetail
@@ -29,7 +29,7 @@ fun Navigation(){
             arguments = listOf(navArgument("film") { type = NavType.StringType })
         ) {
             val json = it.arguments?.getString("film")
-            val film = Gson().fromJson(json, FilmCardUI::class.java)
+            val film = Gson().fromJson(json, FilmCardEntity::class.java)
             val viewModel: ScreenDetailViewModel = hiltViewModel()
             ScreenDetail(film, navController, viewModel)
         }

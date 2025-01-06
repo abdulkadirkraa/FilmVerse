@@ -63,14 +63,13 @@ import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
-import com.abdulkadirkara.data.remote.ApiConstants
-import com.abdulkadirkara.domain.model.FilmCardUI
+import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
 @Composable
-fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: ScreenDetailViewModel = hiltViewModel()) {
+fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: ScreenDetailViewModel = hiltViewModel()) {
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current

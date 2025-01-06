@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
-import com.abdulkadirkara.domain.model.CRUDResponseUI
+import com.abdulkadirkara.domain.model.CRUDResponseEntity
 import com.abdulkadirkara.domain.usecase.GetCartItemCountUseCase
 import com.abdulkadirkara.domain.usecase.InsertMovieUseCase
 import com.abdulkadirkara.domain.usecase.UpdateCartItemCountUseCase
@@ -21,8 +21,8 @@ class ScreenDetailViewModel @Inject constructor(
     private val updateCartItemCountUseCase: UpdateCartItemCountUseCase
 ) : ViewModel() {
 
-    private val _insertMovieCardResult = MutableLiveData<NetworkResponse<CRUDResponseUI>>()
-    val insertMovieCardResult: MutableLiveData<NetworkResponse<CRUDResponseUI>>
+    private val _insertMovieCardResult = MutableLiveData<NetworkResponse<CRUDResponseEntity>>()
+    val insertMovieCardResult: MutableLiveData<NetworkResponse<CRUDResponseEntity>>
         get() = _insertMovieCardResult
 
     private val _cartItemCount = MutableStateFlow(0)

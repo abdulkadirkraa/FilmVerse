@@ -4,13 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.common.networkResponse.onEmpty
 import com.abdulkadirkara.common.networkResponse.onError
 import com.abdulkadirkara.common.networkResponse.onLoading
 import com.abdulkadirkara.common.networkResponse.onSuccess
 import com.abdulkadirkara.data.remote.ApiConstants
-import com.abdulkadirkara.domain.model.CRUDResponseUI
 import com.abdulkadirkara.domain.usecase.DeleteMovieUseCase
 import com.abdulkadirkara.domain.usecase.GetMovieCartUseCase
 import com.abdulkadirkara.domain.usecase.UpdateCartItemCountUseCase

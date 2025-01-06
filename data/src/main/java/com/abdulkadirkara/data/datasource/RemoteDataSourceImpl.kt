@@ -1,6 +1,5 @@
 package com.abdulkadirkara.data.datasource
 
-import android.util.Log
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.base.BaseDataSource
 import com.abdulkadirkara.data.di.coroutines.DispatcherType

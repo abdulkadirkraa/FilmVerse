@@ -64,10 +64,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
 import com.abdulkadirkara.common.constant.ApiImageConstant
-import com.abdulkadirkara.data.remote.ApiConstants
-import com.abdulkadirkara.domain.model.FilmCardUI
-import com.abdulkadirkara.domain.model.FilmCategoryUI
-import com.abdulkadirkara.domain.model.FilmImageUI
+import com.abdulkadirkara.domain.model.FilmCardEntity
+import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmImageEntity
 import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.ErrorComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
@@ -213,7 +212,7 @@ fun ScreenHome(
 }
 
 @Composable
-fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
+fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) {
     when (imageState.value) {
         is HomeUIState.Empty -> {
             //boşşsa diye uygun bir lottie animasyon ile component kullanılabilir
@@ -233,7 +232,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
         }
 
         is HomeUIState.Success -> {
-            val imageList = (imageState.value as HomeUIState.Success<List<FilmImageUI>>).data
+            val imageList = (imageState.value as HomeUIState.Success<List<FilmImageEntity>>).data
             HomeScreenViewPager(imageList)
         }
     }
@@ -241,7 +240,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageUI>>>) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun HomeScreenViewPager(imageList: List<FilmImageUI>) {
+fun HomeScreenViewPager(imageList: List<FilmImageEntity>) {
     val pagerState = rememberPagerState(pageCount = imageList.size)
     LaunchedEffect(Unit) {
         while (true) {
@@ -283,7 +282,7 @@ fun HomeScreenViewPager(imageList: List<FilmImageUI>) {
 
 @Composable
 fun HomeScreenCategoryState(
-    categoryState: State<HomeUIState<List<FilmCategoryUI>>>,
+    categoryState: State<HomeUIState<List<FilmCategoryEntity>>>,
     viewModel: ScreenHomeViewModel,
 ) {
     when (categoryState.value) {
@@ -297,7 +296,7 @@ fun HomeScreenCategoryState(
 
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
-            val categories = (categoryState.value as HomeUIState.Success<List<FilmCategoryUI>>).data
+            val categories = (categoryState.value as HomeUIState.Success<List<FilmCategoryEntity>>).data
             val selectedCategory = categories.find { it.isClicked } ?: categories.first()
             CategoryList(
                 categories = categories,
@@ -311,9 +310,9 @@ fun HomeScreenCategoryState(
 
 @Composable
 fun CategoryList(
-    categories: List<FilmCategoryUI>,
-    selectedCategory: FilmCategoryUI,
-    onCategorySelected: (FilmCategoryUI) -> Unit
+    categories: List<FilmCategoryEntity>,
+    selectedCategory: FilmCategoryEntity,
+    onCategorySelected: (FilmCategoryEntity) -> Unit
 ) {
     LazyRow(
         modifier = Modifier.padding(horizontal = 8.dp, vertical = 16.dp)
@@ -348,7 +347,7 @@ fun CategoryList(
 }
 
 @Composable
-fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navController: NavController) {
+fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardEntity>>>, navController: NavController) {
     when (movieState.value) {
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
@@ -360,7 +359,7 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navC
 
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
-            val movies = (movieState.value as HomeUIState.Success<List<FilmCardUI>>).data
+            val movies = (movieState.value as HomeUIState.Success<List<FilmCardEntity>>).data
             HomeScreenMovies(movies, {
                 //onFavoriteClick
             },{
@@ -374,9 +373,9 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardUI>>>, navC
 
 @Composable
 fun HomeScreenMovies(
-    films: List<FilmCardUI>,
-    onFavoriteClick: (FilmCardUI) -> Unit,
-    onItemClicked: (FilmCardUI) -> Unit
+    films: List<FilmCardEntity>,
+    onFavoriteClick: (FilmCardEntity) -> Unit,
+    onItemClicked: (FilmCardEntity) -> Unit
 ) {
     val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
 
@@ -398,9 +397,9 @@ fun HomeScreenMovies(
 
 @Composable
 fun FilmCardItem(
-    film: FilmCardUI,
-    onFavoriteClick: (FilmCardUI) -> Unit,
-    onItemClicked: (FilmCardUI) -> Unit
+    film: FilmCardEntity,
+    onFavoriteClick: (FilmCardEntity) -> Unit,
+    onItemClicked: (FilmCardEntity) -> Unit
 ) {
     Card(
         modifier = Modifier
