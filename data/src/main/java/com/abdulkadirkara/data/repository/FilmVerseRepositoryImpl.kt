@@ -54,12 +54,11 @@ class FilmVerseRepositoryImpl @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int,
-        userName: String
+        orderAmount: Int
     ): Flow<NetworkResponse<CRUDResponseUI>> {
         return safeApiCall(
             apiCall = {
-                remoteDataSource.insertMovie(name, image, price, category, rating, year, director, description, orderAmount, userName
+                remoteDataSource.insertMovie(name, image, price, category, rating, year, director, description, orderAmount
                 ) },
             transform = { response -> response.toCRUDResponseUI() }
         )

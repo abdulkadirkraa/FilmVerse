@@ -5,7 +5,6 @@ import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.base.BaseDataSource
 import com.abdulkadirkara.data.di.coroutines.DispatcherType
 import com.abdulkadirkara.data.di.coroutines.FilmVerseDispatchers
-import com.abdulkadirkara.data.remote.dto.CardResponse
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
 import com.abdulkadirkara.data.remote.dto.crud.CRUDResponse
 import com.abdulkadirkara.data.remote.dto.filmCard.FilmCardResponse
@@ -32,14 +31,12 @@ class RemoteDataSourceImpl @Inject constructor(
         year: Int,
         director: String,
         description: String,
-        orderAmount: Int,
-        userName: String
+        orderAmount: Int
     ): NetworkResponse<CRUDResponse> {
         return ioDispatcherCall(ioDispatcher){
             val response = safeApiCall {
-                apiService.insertMovie(name, image, price, category, rating, year, director, description, orderAmount, userName
+                apiService.insertMovie(name, image, price, category, rating, year, director, description, orderAmount
             ) }
-            Log.e("RemoteDataSourceImpl", "Response insert: $response")
             response
         }
     }
@@ -47,10 +44,8 @@ class RemoteDataSourceImpl @Inject constructor(
     override suspend fun getMovieCart(userName: String): NetworkResponse<FilmCardResponse> {
         return ioDispatcherCall(ioDispatcher){
             val response = safeApiCall {
-                Log.e("RemoteDataSourceImpl", "Response getMovieCart: $userName")
                 apiService.getMovieCart(userName)
             }
-            Log.e("RemoteDataSourceImpl", "Response getMovieCart: $response")
             response
         }
     }

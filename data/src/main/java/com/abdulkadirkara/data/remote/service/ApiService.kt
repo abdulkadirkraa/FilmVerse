@@ -1,16 +1,13 @@
 package com.abdulkadirkara.data.remote.service
 
 import com.abdulkadirkara.data.remote.ApiConstants
-import com.abdulkadirkara.data.remote.dto.CardResponse
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
 import com.abdulkadirkara.data.remote.dto.crud.CRUDResponse
 import com.abdulkadirkara.data.remote.dto.filmCard.FilmCardResponse
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.Query
 
 interface ApiService {
 
@@ -29,7 +26,7 @@ interface ApiService {
         @Field("director") director: String,
         @Field("description") description: String,
         @Field("orderAmount") orderAmount: Int,
-        @Field("userName") userName: String
+        @Field("userName") userName: String = ApiConstants.USER_NAME
     ) : CRUDResponse
 
     @POST(ApiConstants.GET_MOVIE_CART_END_POINT)

@@ -196,8 +196,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                                     year = film.year,
                                     director = film.director,
                                     description = film.description,
-                                    orderAmount = quantity,
-                                    userName = ApiConstants.USER_NAME
+                                    orderAmount = quantity
                                 )
                             },
                         shape = RoundedCornerShape(10.dp),
