@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardUI
@@ -230,7 +231,7 @@ fun ScreenDetail(film: FilmCardUI, navController: NavController, viewModel: Scre
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                val imageUrl = ApiConstants.IMAGE_BASE_URL + film.image
+                val imageUrl = ApiImageConstant.IMAGE_BASE_URL + film.image
                 AsyncImage(
                     model = imageUrl,
                     modifier = Modifier

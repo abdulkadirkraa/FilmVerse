@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
+import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.FilmCardUI
 import com.abdulkadirkara.domain.model.FilmCategoryUI
@@ -259,7 +260,7 @@ fun HomeScreenViewPager(imageList: List<FilmImageUI>) {
                 .height(300.dp), // Yüksekliği artırabilirsiniz
             verticalAlignment = Alignment.CenterVertically // Sayfaları dikeyde ortala
         ) { currentPage ->
-            val url = ApiConstants.IMAGE_BASE_URL + imageList[currentPage].image
+            val url = ApiImageConstant.IMAGE_BASE_URL + imageList[currentPage].image
             // Resim kartı
             Card(
                 modifier = Modifier
@@ -416,7 +417,7 @@ fun FilmCardItem(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                val imageUrl = ApiConstants.IMAGE_BASE_URL + film.image
+                val imageUrl = ApiImageConstant.IMAGE_BASE_URL + film.image
                 AsyncImage(
                     model = imageUrl,
                     contentDescription = "Film Görseli",

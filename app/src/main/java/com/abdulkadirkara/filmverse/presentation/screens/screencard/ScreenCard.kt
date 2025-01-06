@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil3.compose.AsyncImage
+import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
 
@@ -262,7 +263,7 @@ fun MovieCardItem(
 
             // Image
             AsyncImage(
-                model = ApiConstants.IMAGE_BASE_URL + movie.image,
+                model = ApiImageConstant.IMAGE_BASE_URL + movie.image,
                 contentDescription = null,
                 modifier = Modifier
                     .size(80.dp)
