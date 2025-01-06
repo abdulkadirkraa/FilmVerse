@@ -26,8 +26,8 @@ class ScreenCardViewModel @Inject constructor(
     private val deleteMovieUseCase: DeleteMovieUseCase,
     private val updateCartItemCountUseCase: UpdateCartItemCountUseCase
 ) : ViewModel() {
-    private val _movieCardState = MutableLiveData<CardUIState<List<FilmCardItem>>>()
-    val movieCardState: LiveData<CardUIState<List<FilmCardItem>>> = _movieCardState
+    private val _movieCardState = MutableLiveData<CardUIState<List<ScreenCardUIData>>>()
+    val movieCardState: LiveData<CardUIState<List<ScreenCardUIData>>> = _movieCardState
 
     private val _deleteMovieCardResult = MutableLiveData<NetworkResponse<CRUDResponseUI>>()
     val deleteMovieCardResult: MutableLiveData<NetworkResponse<CRUDResponseUI>>
@@ -57,32 +57,50 @@ class ScreenCardViewModel @Inject constructor(
                 }.onLoading {
                     _movieCardState.value = CardUIState.Loading
                 }.onSuccess { cartList ->
-                    _movieCardState.value = CardUIState.Success(cartList)
-                    _productCount.value = cartList.sumOf { it.orderAmount }
+                    // Filmleri gruplandır ve ScreenCardUIData formatına dönüştür
+                    val groupedList = cartList.groupBy { it.name }.map { entry ->
+                        ScreenCardUIData(
+                            cartId = entry.value.map { it.cartId },
+                            name = entry.key,
+                            image = entry.value.first().image, // İlk kaydın görselini kullan
+                            category = entry.value.first().category,
+                            price = entry.value.first().price, // İlk kaydın fiyatını kullan
+                            orderAmount = entry.value.sumOf { it.orderAmount }, // Toplam sipariş miktarı
+                            isChecked = true // Varsayılan olarak true
+                        )
+                    }
+
+                    // Durum değerlerini güncelle
+                    _movieCardState.value = CardUIState.Success(groupedList)
+                    _productCount.value = groupedList.sumOf { it.orderAmount }
                 }
             }
         }
     }
 
-    fun deleteMovieCard(cartId: Int, userName: String, orderAmount: Int) {
+    fun deleteMovieCard(cartIds: List<Int>, userName: String) {
         viewModelScope.launch {
-            deleteMovieUseCase(cartId, userName).collect { response ->
-                response.onSuccess {
-                    updateProductCount(cartId)
-                    updateCartItemCountUseCase.execute(-orderAmount)
+            cartIds.forEach { cartId ->
+                deleteMovieUseCase(cartId, userName).collect { response ->
+                    response.onSuccess {
+                        updateProductCount(cartId)
+                    }
+                    _deleteMovieCardResult.value = response
                 }
-                _deleteMovieCardResult.value = response
             }
         }
     }
 
     private fun updateProductCount(cartId: Int) {
-        val currentState = _movieCardState.value
-        if (currentState is CardUIState.Success) {
-            val updatedList = currentState.data.filterNot { it.cartId == cartId }
-            _movieCardState.value = CardUIState.Success(updatedList)
-            _productCount.value = updatedList.sumOf { it.orderAmount }
-        }
-    }
+        val currentState = _movieCardState.value as? CardUIState.Success ?: return
+        val updatedList = currentState.data.filterNot { it.cartId.contains(cartId) }
+            .map { screenCard ->
+                screenCard.copy(
+                    cartId = screenCard.cartId.filterNot { it == cartId }
+                )
+            }
 
+        _movieCardState.value = CardUIState.Success(updatedList)
+        _productCount.value = updatedList.sumOf { it.orderAmount }
+    }
 }

@@ -83,7 +83,7 @@ fun ScreenCard(
                 LoadingComponent()
             }
             is CardUIState.Success -> {
-                val movieList = (movieCardState as CardUIState.Success<List<FilmCardItem>>).data
+                val movieList = (movieCardState as CardUIState.Success<List<ScreenCardUIData>>).data
                 MovieStateSuccess(paddingValues, movieList, viewModel)
             }
         }
@@ -91,7 +91,7 @@ fun ScreenCard(
 }
 
 @Composable
-fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem>, viewModel: ScreenCardViewModel){
+fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<ScreenCardUIData>, viewModel: ScreenCardViewModel){
     val selectedStates = remember { mutableStateMapOf<Int, Boolean>() }
     LazyColumn(
         modifier = Modifier
@@ -107,7 +107,7 @@ fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem
                 movie = movie,
                 isChecked = isChecked,
                 onCheckedChange = { isSelected -> selectedStates[index] = isSelected },
-                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME, movie.orderAmount) } // Silme işlemi için çağrı
+                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME) } // Silme işlemi için çağrı
             )
         }
 
@@ -116,7 +116,7 @@ fun MovieStateSuccess(paddingValues: PaddingValues, movieList: List<FilmCardItem
 
 @Composable
 fun MovieCardItem(
-    movie: FilmCardItem,
+    movie: ScreenCardUIData,
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     onDelete: () -> Unit
@@ -225,4 +225,3 @@ fun MovieCardItem(
         }
     }
 }
-
