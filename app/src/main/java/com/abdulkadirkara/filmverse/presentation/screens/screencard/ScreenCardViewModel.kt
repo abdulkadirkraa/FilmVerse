@@ -1,6 +1,5 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screencard
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -12,7 +11,6 @@ import com.abdulkadirkara.common.networkResponse.onLoading
 import com.abdulkadirkara.common.networkResponse.onSuccess
 import com.abdulkadirkara.data.remote.ApiConstants
 import com.abdulkadirkara.domain.model.CRUDResponseUI
-import com.abdulkadirkara.domain.model.FilmCardItem
 import com.abdulkadirkara.domain.usecase.DeleteMovieUseCase
 import com.abdulkadirkara.domain.usecase.GetMovieCartUseCase
 import com.abdulkadirkara.domain.usecase.UpdateCartItemCountUseCase
@@ -29,9 +27,6 @@ class ScreenCardViewModel @Inject constructor(
     private val _movieCardState = MutableLiveData<CardUIState<List<ScreenCardUIData>>>()
     val movieCardState: LiveData<CardUIState<List<ScreenCardUIData>>> = _movieCardState
 
-    private val _deleteMovieCardResult = MutableLiveData<NetworkResponse<CRUDResponseUI>>()
-    val deleteMovieCardResult: MutableLiveData<NetworkResponse<CRUDResponseUI>>
-        get() = _deleteMovieCardResult
 
     private val _productCount = MutableLiveData<Int>()
     val productCount: LiveData<Int> get() = _productCount
@@ -57,20 +52,17 @@ class ScreenCardViewModel @Inject constructor(
                 }.onLoading {
                     _movieCardState.value = CardUIState.Loading
                 }.onSuccess { cartList ->
-                    // Filmleri gruplandır ve ScreenCardUIData formatına dönüştür
                     val groupedList = cartList.groupBy { it.name }.map { entry ->
                         ScreenCardUIData(
                             cartId = entry.value.map { it.cartId },
                             name = entry.key,
-                            image = entry.value.first().image, // İlk kaydın görselini kullan
+                            image = entry.value.first().image,
                             category = entry.value.first().category,
-                            price = entry.value.first().price, // İlk kaydın fiyatını kullan
-                            orderAmount = entry.value.sumOf { it.orderAmount }, // Toplam sipariş miktarı
-                            isChecked = true // Varsayılan olarak true
+                            price = entry.value.first().price,
+                            orderAmount = entry.value.sumOf { it.orderAmount },
+                            isChecked = true
                         )
                     }
-
-                    // Durum değerlerini güncelle
                     _movieCardState.value = CardUIState.Success(groupedList)
                     _productCount.value = groupedList.sumOf { it.orderAmount }
                 }
@@ -85,9 +77,24 @@ class ScreenCardViewModel @Inject constructor(
                     response.onSuccess {
                         updateProductCount(cartId)
                     }
-                    _deleteMovieCardResult.value = response
                 }
             }
+        }
+    }
+
+    fun deleteSelectedMovies(selectedStates: Map<Int, Boolean>) {
+        val selectedCartIds = movieCardState.value?.let { state ->
+            if (state is CardUIState.Success) {
+                state.data
+                    .filterIndexed { index, _ -> selectedStates[index] == true }
+                    .map { it.cartId }
+            } else {
+                emptyList()
+            }
+        } ?: emptyList()
+
+        selectedCartIds.forEach { cartId ->
+            deleteMovieCard(cartId, ApiConstants.USER_NAME)
         }
     }
 
@@ -99,7 +106,6 @@ class ScreenCardViewModel @Inject constructor(
                     cartId = screenCard.cartId.filterNot { it == cartId }
                 )
             }
-
         _movieCardState.value = CardUIState.Success(updatedList)
         _productCount.value = updatedList.sumOf { it.orderAmount }
     }
