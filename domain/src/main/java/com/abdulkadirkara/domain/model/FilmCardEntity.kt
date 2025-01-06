@@ -1,6 +1,6 @@
 package com.abdulkadirkara.domain.model
 
-data class FilmCardUI(
+data class FilmCardEntity(
     val id: Int,
     val image: String,
     val name: String,
