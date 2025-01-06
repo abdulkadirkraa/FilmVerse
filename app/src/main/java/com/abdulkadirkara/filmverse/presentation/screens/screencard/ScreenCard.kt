@@ -206,7 +206,7 @@ fun MovieStateSuccess(
                 onCheckedChange = { isSelected ->
                     selectedStates[index] = isSelected
                 },
-                onDelete = { viewModel.deleteMovieCard(movie.cartId, ApiConstants.USER_NAME) }
+                onDelete = { viewModel.deleteMovieCard(movie.cartId) }
             )
         }
     }

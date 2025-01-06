@@ -9,6 +9,6 @@ import javax.inject.Inject
 class DeleteMovieUseCase @Inject constructor(
     private val filmVerseRepository: FilmVerseRepository
 ) {
-    suspend operator fun invoke(cartId: Int, userName: String): Flow<NetworkResponse<CRUDResponseEntity>> =
-        filmVerseRepository.deleteMovie(cartId, userName)
+    suspend operator fun invoke(cartId: Int): Flow<NetworkResponse<CRUDResponseEntity>> =
+        filmVerseRepository.deleteMovie(cartId)
 }

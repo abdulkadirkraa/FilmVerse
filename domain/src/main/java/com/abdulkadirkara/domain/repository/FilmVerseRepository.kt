@@ -23,6 +23,6 @@ interface FilmVerseRepository {
         description: String,
         orderAmount: Int
     ) : Flow<NetworkResponse<CRUDResponseEntity>>
-    suspend fun getMovieCart(userName: String) : Flow<NetworkResponse<List<FilmCardItem>>>
-    suspend fun deleteMovie(cartId: Int, userName: String) : Flow<NetworkResponse<CRUDResponseEntity>>
+    suspend fun getMovieCart() : Flow<NetworkResponse<List<FilmCardItem>>>
+    suspend fun deleteMovie(cartId: Int) : Flow<NetworkResponse<CRUDResponseEntity>>
 }

@@ -37,6 +37,6 @@ interface ApiService {
     @FormUrlEncoded
     suspend fun deleteMovie(
         @Field("cartId") cartId: Int,
-        @Field("userName") userName: String
+        @Field("userName") userName: String = ApiConstants.USER_NAME
     ) : CRUDResponse
 }

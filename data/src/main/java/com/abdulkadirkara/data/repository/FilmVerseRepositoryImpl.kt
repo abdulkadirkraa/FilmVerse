@@ -66,19 +66,18 @@ class FilmVerseRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun getMovieCart(userName: String): Flow<NetworkResponse<List<FilmCardItem>>> {
+    override suspend fun getMovieCart(): Flow<NetworkResponse<List<FilmCardItem>>> {
         return safeApiCall(
-            apiCall = { remoteDataSource.getMovieCart(userName) },
+            apiCall = { remoteDataSource.getMovieCart() },
             transform = { response -> response.filmCards.map { filmCard -> filmCardToFilmCardItemMapper.map(filmCard) } }
         )
     }
 
     override suspend fun deleteMovie(
-        cartId: Int,
-        userName: String
+        cartId: Int
     ): Flow<NetworkResponse<CRUDResponseEntity>> {
         return safeApiCall(
-            apiCall = { remoteDataSource.deleteMovie(cartId, userName) },
+            apiCall = { remoteDataSource.deleteMovie(cartId) },
             transform = { response -> crudResponseToCrudResponseEntityMapper.map(response) }
         )
     }

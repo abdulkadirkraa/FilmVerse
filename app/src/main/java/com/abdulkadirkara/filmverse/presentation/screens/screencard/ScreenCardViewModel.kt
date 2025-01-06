@@ -30,7 +30,7 @@ class ScreenCardViewModel @Inject constructor(
     val productCount: LiveData<Int> get() = _productCount
 
     init {
-        getMovieCard(ApiConstants.USER_NAME)
+        getMovieCard()
     }
 
     fun updateCartItemCount(newCount: Int) {
@@ -39,9 +39,9 @@ class ScreenCardViewModel @Inject constructor(
         }
     }
 
-    private fun getMovieCard(userName: String) {
+    private fun getMovieCard() {
         viewModelScope.launch {
-            getMovieCartUseCase(userName = userName).collect { it ->
+            getMovieCartUseCase().collect { it ->
                 it.onError {
                     _movieCardState.value = CardUIState.Error(it.toString())
                 }.onEmpty {
@@ -68,10 +68,10 @@ class ScreenCardViewModel @Inject constructor(
         }
     }
 
-    fun deleteMovieCard(cartIds: List<Int>, userName: String) {
+    fun deleteMovieCard(cartIds: List<Int>) {
         viewModelScope.launch {
             cartIds.forEach { cartId ->
-                deleteMovieUseCase(cartId, userName).collect { response ->
+                deleteMovieUseCase(cartId).collect { response ->
                     response.onSuccess {
                         updateProductCount(cartId)
                     }
@@ -92,7 +92,7 @@ class ScreenCardViewModel @Inject constructor(
         } ?: emptyList()
 
         selectedCartIds.forEach { cartId ->
-            deleteMovieCard(cartId, ApiConstants.USER_NAME)
+            deleteMovieCard(cartId)
         }
     }
 
