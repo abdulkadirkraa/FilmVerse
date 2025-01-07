@@ -5,6 +5,7 @@ import com.abdulkadirkara.domain.model.CRUDResponseEntity
 import com.abdulkadirkara.domain.model.FilmCardItem
 import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmEntityModel
 import com.abdulkadirkara.domain.model.FilmImageEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -25,4 +26,8 @@ interface FilmVerseRepository {
     ) : Flow<NetworkResponse<CRUDResponseEntity>>
     suspend fun getMovieCart() : Flow<NetworkResponse<List<FilmCardItem>>>
     suspend fun deleteMovie(cartId: Int) : Flow<NetworkResponse<CRUDResponseEntity>>
+
+    suspend fun insertFilm(film: FilmEntityModel)
+    suspend fun deleteFilm(film: FilmEntityModel)
+    fun getAllFilms(): Flow<List<FilmEntityModel>>
 }
