@@ -58,4 +58,9 @@ dependencies {
     implementation(libs.okhttp)
     //DataStore
     implementation(libs.androidx.datastore.preferences)
+    //Room
+    implementation (libs.androidx.room.runtime)
+    //noinspection KaptUsageInsteadOfKsp
+    kapt(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
 }
