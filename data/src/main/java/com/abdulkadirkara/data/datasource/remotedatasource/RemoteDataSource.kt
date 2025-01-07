@@ -1,4 +1,4 @@
-package com.abdulkadirkara.data.datasource
+package com.abdulkadirkara.data.datasource.remotedatasource
 
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.data.remote.dto.allFilms.FilmResponse
