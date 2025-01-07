@@ -56,16 +56,16 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.common.networkResponse.NetworkResponse
 import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.navigation.Screens
+import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
 @Composable
@@ -166,7 +166,6 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                     }
                 }
 
-                // Fiyat Bilgisi ve Sepete Ekle
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -229,23 +228,19 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                val imageUrl = ApiImageConstant.IMAGE_BASE_URL + film.image
-                AsyncImage(
-                    model = imageUrl,
-                    modifier = Modifier
-                        .width(150.dp)
-                        .height(200.dp)
-                        .weight(50f),
-                    contentDescription = "Film Görseli",
+                CustomImage(
+                    imageUrl = film.image,
+                    modifier = Modifier.weight(50f),
                     contentScale = ContentScale.FillHeight,
+                    imageSize = DpSize(150.dp, 200.dp)
                 )
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(4.dp).weight(50f),
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp) // Daha büyük bir arka plan
-                            .padding(4.dp) // Kartın köşelerinden uzaklaştırmak için padding ekledik
+                            .size(48.dp)
+                            .padding(4.dp)
                             .background(Color.LightGray, CircleShape)
                             .align(Alignment.End)
                     ) {
@@ -322,8 +317,8 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(48.dp) // Daha büyük bir arka plan
-                            .padding(4.dp) // Kartın köşelerinden uzaklaştırmak için padding ekledik
+                            .size(48.dp)
+                            .padding(4.dp)
                             .background(Color(0xFF0D47A1), RoundedCornerShape(10.dp))
                     ) {
                         Icon(

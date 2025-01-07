@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,11 +42,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil3.compose.AsyncImage
-import com.abdulkadirkara.common.constant.ApiImageConstant
+import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -149,6 +148,7 @@ fun BottomBar(
                     .weight(50f)
                     .clickable {
                         viewModel.deleteSelectedMovies(selectedStates)
+                        viewModel.updateCartItemCount(-movieCardState.data.sumOf { it.orderAmount })
                     },
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
@@ -205,7 +205,10 @@ fun MovieStateSuccess(
                 onCheckedChange = { isSelected ->
                     selectedStates[index] = isSelected
                 },
-                onDelete = { viewModel.deleteMovieCard(movie.cartId) }
+                onDelete = {
+                    viewModel.deleteMovieCard(movie.cartId)
+                    viewModel.updateCartItemCount(-movie.orderAmount)
+                }
             )
         }
     }
@@ -260,13 +263,10 @@ fun MovieCardItem(
                 modifier = Modifier.weight(0.1f)
             )
 
-            // Image
-            AsyncImage(
-                model = ApiImageConstant.IMAGE_BASE_URL + movie.image,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(80.dp)
-                    .weight(0.2f)
+            CustomImage(
+                imageUrl = movie.image,
+                modifier = Modifier.weight(0.2f),
+                imageSize = DpSize(80.dp, 80.dp)
             )
 
             Column(

@@ -62,12 +62,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil3.compose.AsyncImage
-import com.abdulkadirkara.common.constant.ApiImageConstant
 import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.domain.model.FilmCategoryEntity
 import com.abdulkadirkara.domain.model.FilmImageEntity
 import com.abdulkadirkara.filmverse.presentation.navigation.Screens
+import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
 import com.abdulkadirkara.filmverse.presentation.screens.components.ErrorComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.HomeScreenCustomTopBar
@@ -256,24 +255,19 @@ fun HomeScreenViewPager(imageList: List<FilmImageEntity>) {
             state = pagerState,
             modifier = Modifier
                 .fillMaxWidth()
-                .height(300.dp), // Yüksekliği artırabilirsiniz
-            verticalAlignment = Alignment.CenterVertically // Sayfaları dikeyde ortala
+                .height(300.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) { currentPage ->
-            val url = ApiImageConstant.IMAGE_BASE_URL + imageList[currentPage].image
-            // Resim kartı
             Card(
                 modifier = Modifier
-                    .fillMaxSize() // Orijinal genişlik 200, iki katına çıkarıyoruz
-                //.height(300.dp) // Orijinal yükseklik 300, iki katına çıkarıyoruz
-                //.padding(8.dp),
+                    .fillMaxSize()
                 ,
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
-                AsyncImage(
-                    model = url,
-                    contentDescription = "Film Posteri",
-                    contentScale = ContentScale.FillBounds, // Resmi kesmeden ölçekle
-                    modifier = Modifier.fillMaxSize()
+                CustomImage(
+                    modifier = Modifier.fillMaxSize(),
+                    imageUrl = imageList[currentPage].image,
+                    contentScale = ContentScale.FillBounds,
                 )
             }
         }
@@ -302,7 +296,7 @@ fun HomeScreenCategoryState(
                 categories = categories,
                 selectedCategory = selectedCategory
             ) { selected ->
-                viewModel.selectCategory(selected) // Kategori seçimi
+                viewModel.selectCategory(selected)
             }
         }
     }
@@ -377,10 +371,10 @@ fun HomeScreenMovies(
     onFavoriteClick: (FilmCardEntity) -> Unit,
     onItemClicked: (FilmCardEntity) -> Unit
 ) {
-    val filmState by remember { mutableStateOf(films) } // State ile filmler listesi
+    val filmState by remember { mutableStateOf(films) }
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2), // 2 sütunlu grid
+        columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
     ) {
@@ -416,19 +410,17 @@ fun FilmCardItem(
                     .fillMaxWidth()
                     .weight(1f)
             ) {
-                val imageUrl = ApiImageConstant.IMAGE_BASE_URL + film.image
-                AsyncImage(
-                    model = imageUrl,
-                    contentDescription = "Film Görseli",
-                    contentScale = ContentScale.FillHeight,
-                    modifier = Modifier.fillMaxSize()
+                CustomImage(
+                    modifier = Modifier.fillMaxSize(),
+                    imageUrl = film.image,
+                    contentScale = ContentScale.FillHeight
                 )
 
                 // Favori butonu
                 Box(
                     modifier = Modifier
-                        .size(48.dp) // Daha büyük bir arka plan
-                        .padding(8.dp) // Kartın köşelerinden uzaklaştırmak için padding ekledik
+                        .size(48.dp)
+                        .padding(8.dp)
                         .background(Color.LightGray, CircleShape)
                         .align(Alignment.TopEnd)
                 ) {
@@ -444,7 +436,6 @@ fun FilmCardItem(
             }
 
             if (film.id % 3 == 0){
-                // Kampanya alanı
                 if (film.campaign == null) {
                     Box(
                         modifier = Modifier
@@ -463,7 +454,6 @@ fun FilmCardItem(
                 }
             }
 
-            // Film bilgileri
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

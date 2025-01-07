@@ -2,6 +2,8 @@ package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -37,7 +39,7 @@ class ScreenHomeViewModel @Inject constructor(
     val filteredMovies: LiveData<HomeUIState<List<FilmCardEntity>>> = _filteredMovies
     private var allMovies: List<FilmCardEntity> = emptyList()
 
-    private val _filterCount = mutableStateOf(0)
+    private val _filterCount = mutableIntStateOf(0)
     val filterCount: State<Int> = _filterCount
 
     private val _selectedCategories = mutableStateOf<Set<String>>(emptySet())
@@ -46,13 +48,13 @@ class ScreenHomeViewModel @Inject constructor(
     private val _selectedDirectors = mutableStateOf<Set<String>>(emptySet())
     val selectedDirectors: State<Set<String>> = _selectedDirectors
 
-    private val _selectedRating = mutableStateOf(0f)
+    private val _selectedRating = mutableFloatStateOf(0f)
     val selectedRating: State<Float> = _selectedRating
 
     private val _isFilterSelected = derivedStateOf {
         _selectedCategories.value.isNotEmpty() ||
                 _selectedDirectors.value.isNotEmpty() ||
-                _selectedRating.value > 0f
+                _selectedRating.floatValue > 0f
     }
     val isFilterSelected: State<Boolean> = _isFilterSelected
 
@@ -67,7 +69,7 @@ class ScreenHomeViewModel @Inject constructor(
     }
 
     fun updateSelectedRating(rating: Float) {
-        _selectedRating.value = rating
+        _selectedRating.floatValue = rating
         updateFilterCount()
     }
 
@@ -75,10 +77,10 @@ class ScreenHomeViewModel @Inject constructor(
         val selectedFilterCount = listOf(
             _selectedCategories.value.size,
             _selectedDirectors.value.size,
-            if (_selectedRating.value > 0) 1 else 0
+            if (_selectedRating.floatValue > 0) 1 else 0
         ).sum()
 
-        _filterCount.value = selectedFilterCount
+        _filterCount.intValue = selectedFilterCount
     }
 
     init {
@@ -156,7 +158,7 @@ class ScreenHomeViewModel @Inject constructor(
         val filteredList = allMovies.filter { movie ->
             (_selectedCategories.value.isEmpty() || movie.category in _selectedCategories.value) &&
                     (_selectedDirectors.value.isEmpty() || movie.director in _selectedDirectors.value) &&
-                    movie.rating >= _selectedRating.value
+                    movie.rating >= _selectedRating.floatValue
         }
         _filteredMovies.value = if (filteredList.isEmpty()) HomeUIState.Empty else HomeUIState.Success(filteredList)
     }
