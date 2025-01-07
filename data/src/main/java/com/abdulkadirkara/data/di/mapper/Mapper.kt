@@ -1,7 +1,10 @@
 package com.abdulkadirkara.data.di.mapper
 
+import com.abdulkadirkara.data.local.room.FilmEntity
 import com.abdulkadirkara.data.mapper.CRUDResponseToCRUDResponseEntityMapper
 import com.abdulkadirkara.data.mapper.FilmCardToFilmCardItemMapper
+import com.abdulkadirkara.data.mapper.FilmEntityModelToFilmEntity
+import com.abdulkadirkara.data.mapper.FilmEntityToFilmEntityModel
 import com.abdulkadirkara.data.mapper.FilmToFilmCardEntityMapper
 import com.abdulkadirkara.data.mapper.FilmToFilmCategoryEntityMapper
 import com.abdulkadirkara.data.mapper.FilmToFilmImageEntityMapper
@@ -13,6 +16,7 @@ import com.abdulkadirkara.domain.model.CRUDResponseEntity
 import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.domain.model.FilmCardItem
 import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmEntityModel
 import com.abdulkadirkara.domain.model.FilmImageEntity
 import dagger.Binds
 import dagger.Module
@@ -42,5 +46,13 @@ abstract class MapperModule {
     @Binds
     abstract fun bindFilmToFilmImageEntityMapper(mapper: FilmToFilmImageEntityMapper):
             Mapper<Film, FilmImageEntity>
+
+    @Binds
+    abstract fun bindFilmEntityModelToFilmEntity(mapper: FilmEntityModelToFilmEntity):
+            Mapper<FilmEntityModel, FilmEntity>
+
+    @Binds
+    abstract fun bindFilmEntityToFilmEntityModel(mapper: FilmEntityToFilmEntityModel):
+            Mapper<FilmEntity, FilmEntityModel>
 
 }
