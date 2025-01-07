@@ -1,8 +1,6 @@
 package com.abdulkadirkara.filmverse.presentation.navigation
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
@@ -17,17 +15,35 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.abdulkadirkara.domain.model.FilmCardEntity
+import com.abdulkadirkara.filmverse.presentation.screens.screencard.ScreenCard
+import com.abdulkadirkara.filmverse.presentation.screens.screencard.ScreenCardViewModel
+import com.abdulkadirkara.filmverse.presentation.screens.screendetail.ScreenDetail
+import com.abdulkadirkara.filmverse.presentation.screens.screendetail.ScreenDetailViewModel
+import com.abdulkadirkara.filmverse.presentation.screens.screenfavorites.ScreenFavorites
+import com.abdulkadirkara.filmverse.presentation.screens.screenhome.ScreenHome
+import com.abdulkadirkara.filmverse.presentation.screens.screenhome.ScreenHomeViewModel
+import com.abdulkadirkara.filmverse.presentation.screens.screenprofile.ScreenProfile
+import com.abdulkadirkara.filmverse.presentation.screens.scrennsearch.ScreenSearch
+import com.google.gson.Gson
 
 @Composable
-fun BottomnavigationBar(){
-    val choosenItem = remember { mutableIntStateOf(0)  }
+fun BottomnavigationBar() {
+    val navController = rememberNavController() // Tek seferde oluşturulur.
+    val choosenItem = remember { mutableIntStateOf(0) }
 
     val menuItems = listOf(
         BottomNavItem(Icons.Rounded.Home, "Anasayfa", Screens.ScreenHome),
@@ -37,52 +53,96 @@ fun BottomnavigationBar(){
         BottomNavItem(Icons.Rounded.Person, "Profil", Screens.ScreenProfile),
     )
 
+    val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
+    val showBottomBar = when {
+        currentDestination?.startsWith(Screens.ScreenDetail.route) == true -> false
+        else -> true
+    }
+
     Scaffold(
         bottomBar = {
-            BottomAppBar(
-                containerColor = Color.White,
-                content = {
-                    menuItems.forEachIndexed { index, bottomNavItem ->
-                        NavigationBarItem(
-                            selected = choosenItem.intValue == index,
-                            onClick = {
-                                choosenItem.intValue = index
-                            },
-                            icon = {
-                                Image(
-                                    imageVector = bottomNavItem.iconRes,
-                                    contentDescription = ""
-                                )
-                            },
-                            label = {
-                                Text(
-                                    fontSize = 10.sp,
-                                    text = bottomNavItem.label,
-                                    style = if (choosenItem.intValue == index) {
-                                        TextStyle(fontWeight = FontWeight.Bold, color = Color.Black)
-                                    } else {
-                                        TextStyle(
-                                            fontWeight = FontWeight.Normal,
-                                            color = Color.Gray
-                                        )
+            if (showBottomBar) {
+                BottomAppBar(
+                    containerColor = Color.White,
+                    content = {
+                        menuItems.forEachIndexed { index, bottomNavItem ->
+                            val selectedColor = Color(0xFF0D47A1)
+                            val unselectedColor = Color.Gray
+
+                            NavigationBarItem(
+                                selected = choosenItem.intValue == index,
+                                onClick = {
+                                    choosenItem.intValue = index
+                                    navController.navigate(bottomNavItem.screen.route) {
+                                        launchSingleTop = true
+                                        restoreState = true
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
                                     }
-                                )
-                            }
-                        )
+                                },
+                                icon = {
+                                    Image(
+                                        imageVector = bottomNavItem.iconRes,
+                                        contentDescription = null,
+                                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
+                                            if (choosenItem.intValue == index) selectedColor else unselectedColor
+                                        )
+                                    )
+                                },
+                                label = {
+                                    Text(
+                                        fontSize = 10.sp,
+                                        text = bottomNavItem.label,
+                                        style = TextStyle(
+                                            fontWeight = if (choosenItem.intValue == index) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (choosenItem.intValue == index) selectedColor else unselectedColor
+                                        )
+                                    )
+                                }
+                            )
+                        }
                     }
-                }
-            )
+                )
+
+            }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier.padding(paddingValues),
-            verticalArrangement = Arrangement.SpaceEvenly,
-            horizontalAlignment = Alignment.CenterHorizontally
+        NavHost(
+            navController = navController,
+            startDestination = Screens.ScreenHome.route,
+            modifier = Modifier.padding(paddingValues)
         ) {
-            Navigation(chosenScreen = menuItems[choosenItem.intValue].screen.route)
+            composable(Screens.ScreenHome.route) {
+                val viewModel: ScreenHomeViewModel = hiltViewModel()
+                ScreenHome(navController, viewModel)
+            }
+            composable(
+                route = "${Screens.ScreenDetail.route}/{film}",
+                arguments = listOf(navArgument("film") { type = NavType.StringType })
+            ) {
+                val json = it.arguments?.getString("film")
+                val film = Gson().fromJson(json, FilmCardEntity::class.java)
+                val viewModel: ScreenDetailViewModel = hiltViewModel()
+                ScreenDetail(film, navController, viewModel)
+            }
+            composable(Screens.ScreenCard.route) {
+                val viewModel: ScreenCardViewModel = hiltViewModel()
+                ScreenCard(viewModel)
+            }
+            composable(Screens.ScreenFavorites.route) {
+                ScreenFavorites()
+            }
+            composable(Screens.ScreenProfile.route) {
+                ScreenProfile()
+            }
+            composable(Screens.ScreenSearch.route) {
+                ScreenSearch()
+            }
         }
     }
 }
+
 
 data class BottomNavItem(
     val iconRes: ImageVector,
