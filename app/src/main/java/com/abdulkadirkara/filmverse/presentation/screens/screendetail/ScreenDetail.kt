@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.rounded.BookmarkBorder
 import androidx.compose.material.icons.rounded.Campaign
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -70,6 +71,7 @@ import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.De
 
 @Composable
 fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: ScreenDetailViewModel = hiltViewModel()) {
+    val isFavorite by viewModel.favoriteStatus.collectAsState()
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
@@ -243,9 +245,13 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                             .padding(4.dp)
                             .background(Color.LightGray, CircleShape)
                             .align(Alignment.End)
+                            .clickable {
+                                viewModel.toggleFavorite(film)
+
+                            }
                     ) {
                         Icon(
-                            Icons.Rounded.FavoriteBorder,
+                            imageVector = if (film.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                             contentDescription = "Favori",
                             tint = if (film.isFavorite) Color.Red else Color.White,
                             modifier = Modifier
