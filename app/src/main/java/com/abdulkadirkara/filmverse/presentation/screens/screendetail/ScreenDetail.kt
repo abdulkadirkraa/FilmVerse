@@ -83,6 +83,10 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
         viewModel.getCartItemCount()
     }
 
+    LaunchedEffect(isFavorite) {
+
+    }
+
     LaunchedEffect(insertMovieResult) {
         insertMovieResult?.let { response ->
             when (response) {

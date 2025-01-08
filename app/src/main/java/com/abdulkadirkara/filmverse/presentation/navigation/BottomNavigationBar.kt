@@ -34,6 +34,7 @@ import com.abdulkadirkara.filmverse.presentation.screens.screencard.ScreenCardVi
 import com.abdulkadirkara.filmverse.presentation.screens.screendetail.ScreenDetail
 import com.abdulkadirkara.filmverse.presentation.screens.screendetail.ScreenDetailViewModel
 import com.abdulkadirkara.filmverse.presentation.screens.screenfavorites.ScreenFavorites
+import com.abdulkadirkara.filmverse.presentation.screens.screenfavorites.ScreenFavoritesViewModel
 import com.abdulkadirkara.filmverse.presentation.screens.screenhome.ScreenHome
 import com.abdulkadirkara.filmverse.presentation.screens.screenhome.ScreenHomeViewModel
 import com.abdulkadirkara.filmverse.presentation.screens.screenprofile.ScreenProfile
@@ -131,7 +132,8 @@ fun BottomnavigationBar() {
                 ScreenCard(viewModel)
             }
             composable(Screens.ScreenFavorites.route) {
-                ScreenFavorites()
+                val viewModel: ScreenFavoritesViewModel = hiltViewModel()
+                ScreenFavorites(viewModel)
             }
             composable(Screens.ScreenProfile.route) {
                 ScreenProfile()
