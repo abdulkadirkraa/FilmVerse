@@ -8,7 +8,7 @@ import javax.inject.Inject
 class FilmEntityModelToFilmEntity @Inject constructor() : Mapper<FilmEntityModel, FilmEntity> {
     override fun map(input: FilmEntityModel): FilmEntity {
         return FilmEntity(
-            id = input.id,
+            id = 0,
             category = input.category,
             description = input.description,
             director = input.director,

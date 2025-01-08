@@ -28,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -103,6 +104,10 @@ fun ScreenHome(
         filterCount
     ) {
         viewModel.applyFilters()
+    }
+
+    LaunchedEffect(filteredMoviesState.value) {
+        viewModel.updateMoviesWithFavorites()
     }
 
     val isFilterSelected by viewModel.isFilterSelected
@@ -205,7 +210,7 @@ fun ScreenHome(
             }
             HomeScreenImageState(imageState)
             HomeScreenCategoryState(categoryState, viewModel)
-            HomeScreenMoviesState(filteredMoviesState, navController)
+            HomeScreenMoviesState(filteredMoviesState, navController, viewModel)
         }
     }
 }
@@ -341,7 +346,11 @@ fun CategoryList(
 }
 
 @Composable
-fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardEntity>>>, navController: NavController) {
+fun HomeScreenMoviesState(
+    movieState: State<HomeUIState<List<FilmCardEntity>>>,
+    navController: NavController,
+    viewModel: ScreenHomeViewModel
+) {
     when (movieState.value) {
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
@@ -356,6 +365,7 @@ fun HomeScreenMoviesState(movieState: State<HomeUIState<List<FilmCardEntity>>>, 
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardEntity>>).data
             HomeScreenMovies(movies, {
                 //onFavoriteClick
+                viewModel.toggleFavorite(it)
             },{
                 //onItemClicked
                 val json = Gson().toJson(it)
@@ -425,7 +435,7 @@ fun FilmCardItem(
                         .align(Alignment.TopEnd)
                 ) {
                     Icon(
-                        Icons.Rounded.FavoriteBorder,
+                        imageVector = if (film.isFavorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
                         contentDescription = "Favori",
                         tint = if (film.isFavorite) Color.Red else Color.White,
                         modifier = Modifier

@@ -15,10 +15,14 @@ import com.abdulkadirkara.common.networkResponse.onLoading
 import com.abdulkadirkara.common.networkResponse.onSuccess
 import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.domain.model.FilmCategoryEntity
+import com.abdulkadirkara.domain.model.FilmEntityModel
 import com.abdulkadirkara.domain.model.FilmImageEntity
+import com.abdulkadirkara.domain.usecase.DeleteFilmUseCase
 import com.abdulkadirkara.domain.usecase.GetAllCategoriesUseCase
+import com.abdulkadirkara.domain.usecase.GetAllFilmsUseCase
 import com.abdulkadirkara.domain.usecase.GetAllImagesUseCase
 import com.abdulkadirkara.domain.usecase.GetAllMoviesUseCase
+import com.abdulkadirkara.domain.usecase.InsertFilmUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +32,9 @@ class ScreenHomeViewModel @Inject constructor(
     private val getAllImagesUseCase: GetAllImagesUseCase,
     private val getAllCategoriesUseCase: GetAllCategoriesUseCase,
     private val getAllMoviesUseCase: GetAllMoviesUseCase,
+    private val getAllFilmsUseCase: GetAllFilmsUseCase,
+    private val insertFilmUseCase: InsertFilmUseCase,
+    private val deleteFilmUseCase: DeleteFilmUseCase
 ) : ViewModel() {
     private val _imageState = MutableLiveData<HomeUIState<List<FilmImageEntity>>>(HomeUIState.Loading)
     val imageState: LiveData<HomeUIState<List<FilmImageEntity>>> = _imageState
@@ -38,6 +45,7 @@ class ScreenHomeViewModel @Inject constructor(
     private val _filteredMovies = MutableLiveData<HomeUIState<List<FilmCardEntity>>>(HomeUIState.Loading)
     val filteredMovies: LiveData<HomeUIState<List<FilmCardEntity>>> = _filteredMovies
     private var allMovies: List<FilmCardEntity> = emptyList()
+    private var favoriteMovies: List<FilmEntityModel> = emptyList()
 
     private val _filterCount = mutableIntStateOf(0)
     val filterCount: State<Int> = _filterCount
@@ -84,6 +92,10 @@ class ScreenHomeViewModel @Inject constructor(
     }
 
     init {
+        fetchAllData()
+    }
+
+    private fun fetchAllData() {
         getAllImages()
         getAllCategories()
         getAllMovies()
@@ -113,9 +125,7 @@ class ScreenHomeViewModel @Inject constructor(
                 }.onLoading {
                     _categoryState.value = HomeUIState.Loading
                 }.onSuccess { categories ->
-                    val allCategories = listOf(
-                        FilmCategoryEntity(category = "Tümü", isClicked = true)
-                    ) + categories
+                    val allCategories = listOf(FilmCategoryEntity(category = "Tümü", isClicked = true)) + categories
                     _categoryState.value = HomeUIState.Success(allCategories)
                 }.onError {
                     _categoryState.value = HomeUIState.Error(it.toString())
@@ -135,11 +145,79 @@ class ScreenHomeViewModel @Inject constructor(
                 }.onSuccess {
                     _filteredMovies.value = HomeUIState.Success(it)
                     allMovies = it
+                    fetchFavoritesAndUpdateMovies()
                     applyFilters()
                 }.onError {
                     _filteredMovies.value = HomeUIState.Error(it.toString())
                 }
             }
+        }
+    }
+
+    private fun fetchFavoritesAndUpdateMovies() {
+        viewModelScope.launch {
+            try {
+                getAllFilmsUseCase().collect { films ->
+                    if (films.isEmpty()) {
+                        _filteredMovies.value = HomeUIState.Empty
+                    } else {
+                        favoriteMovies = films
+                        updateMoviesWithFavorites()
+                    }
+                }
+            } catch (e: Exception) {
+                _filteredMovies.value = HomeUIState.Error("Favori filmleri yüklerken bir hata oluştu: ${e.message}")
+            }
+        }
+    }
+
+    fun updateMoviesWithFavorites() {
+        try {
+            val updatedMovies = allMovies.map { movie ->
+                movie.copy(isFavorite = favoriteMovies.any { it.name == movie.name })
+            }
+            if (updatedMovies.isEmpty()) {
+                _filteredMovies.value = HomeUIState.Empty
+            } else {
+                _filteredMovies.value = HomeUIState.Success(updatedMovies)
+            }
+        } catch (e: Exception) {
+            _filteredMovies.value = HomeUIState.Error("Filmler güncellenirken bir hata oluştu: ${e.message}")
+        }
+    }
+
+    fun toggleFavorite(movie: FilmCardEntity) {
+        viewModelScope.launch {
+            if (movie.isFavorite) {
+                deleteFilmUseCase(
+                    FilmEntityModel(
+                        id = 0,
+                        category = movie.category,
+                        description = movie.description,
+                        director = movie.director,
+                        imagePath = movie.image,
+                        name = movie.name,
+                        rating = movie.rating,
+                        price = movie.price,
+                        year = movie.year
+                    )
+                )
+            } else {
+                insertFilmUseCase(
+                    FilmEntityModel(
+                        id = 0,
+                        category = movie.category,
+                        description = movie.description,
+                        director = movie.director,
+                        imagePath = movie.image,
+                        name = movie.name,
+                        rating = movie.rating,
+                        price = movie.price,
+                        year = movie.year
+                    )
+                )
+            }
+            fetchFavoritesAndUpdateMovies()
         }
     }
 
