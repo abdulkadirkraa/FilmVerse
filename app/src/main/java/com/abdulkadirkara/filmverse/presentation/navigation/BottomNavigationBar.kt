@@ -71,7 +71,10 @@ fun BottomNavigationBarContent(
                         }
                     },
                     icon = {
-                        BadgeBox(cartItemCount, index == 2) {
+                        BadgeBox(
+                            badgeCount = if (index == 2) cartItemCount else bottomNavItem.badgeCount,
+                            isCartIcon = index == 2
+                        ) {
                             Image(
                                 imageVector = bottomNavItem.iconRes,
                                 contentDescription = null,
@@ -97,13 +100,14 @@ fun BottomNavigationBarContent(
     )
 }
 
+
 @Composable
-fun BadgeBox(cartItemCount: Int, isCartIcon: Boolean, content: @Composable () -> Unit) {
-    if (isCartIcon && cartItemCount > 0) {
+fun BadgeBox(badgeCount: Int, isCartIcon: Boolean, content: @Composable () -> Unit) {
+    if (badgeCount > 0) {
         androidx.compose.material3.BadgedBox(
             badge = {
                 androidx.compose.material3.Badge {
-                    Text(cartItemCount.toString(), fontSize = 8.sp)
+                    Text(badgeCount.toString(), fontSize = 8.sp)
                 }
             }
         ) {
@@ -113,6 +117,7 @@ fun BadgeBox(cartItemCount: Int, isCartIcon: Boolean, content: @Composable () ->
         content()
     }
 }
+
 
 @Composable
 fun BottomnavigationBar() {
@@ -124,10 +129,11 @@ fun BottomnavigationBar() {
     val menuItems = listOf(
         BottomNavItem(Icons.Rounded.Home, "Anasayfa", Screens.ScreenHome),
         BottomNavItem(Icons.Rounded.Search, "Ara", Screens.ScreenSearch),
-        BottomNavItem(Icons.Rounded.ShoppingCart, "Sepetim", Screens.ScreenCard),
+        BottomNavItem(Icons.Rounded.ShoppingCart, "Sepetim", Screens.ScreenCard, badgeCount = cartItemCount),
         BottomNavItem(Icons.Rounded.Favorite, "Favoriler", Screens.ScreenFavorites),
-        BottomNavItem(Icons.Rounded.Person, "Profil", Screens.ScreenProfile),
+        BottomNavItem(Icons.Rounded.Person, "Profil", Screens.ScreenProfile)
     )
+
 
     Scaffold(
         bottomBar = {
@@ -178,5 +184,6 @@ fun BottomnavigationBar() {
 data class BottomNavItem(
     val iconRes: ImageVector,
     val label: String,
-    val screen: Screens
+    val screen: Screens,
+    val badgeCount: Int = 0
 )
