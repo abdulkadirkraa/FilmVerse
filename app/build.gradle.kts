@@ -52,8 +52,6 @@ android {
 }
 
 dependencies {
-
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -82,7 +80,6 @@ dependencies {
     //Gson
     implementation (libs.gson)
     //ViewModel
-    //implementation(libs.androidx.lifecycle.viewmodel)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.activity.ktx)
     //LiveData
@@ -90,8 +87,6 @@ dependencies {
     //Coroutines
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
-    //Glide
-    implementation (libs.landscapist.glide)
     //Icons
     implementation(libs.androidx.material.icons.extended)
     //pager
@@ -99,5 +94,6 @@ dependencies {
     //Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
-
+    //Lottie
+    implementation(libs.lottie.compose)
 }
