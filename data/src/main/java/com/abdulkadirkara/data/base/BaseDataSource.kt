@@ -28,11 +28,11 @@ abstract class BaseDataSource {
                 NetworkResponse.Success(response)
             }
         } catch (e: HttpException) {
-            NetworkResponse.Error.HttpError(e)
+            NetworkResponse.Error.HttpError(e, e.message ?: "HTTP Error")
         } catch (e: IOException) {
-            NetworkResponse.Error.NetworkError(e)
+            NetworkResponse.Error.NetworkError(e, e.message ?: "Network Error")
         } catch (e: Exception) {
-            NetworkResponse.Error.UnknownError(e)
+            NetworkResponse.Error.UnknownError(e, e.message ?: "Unknown Error")
         }
     }
 }

@@ -225,10 +225,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) 
 
         is HomeUIState.Error -> {
             val errorMessage = (imageState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage) {
-                // Dialog kapatıldığında yapılacak işlemler
-                //Burda da bir lottie animasyonu döndüreibliriz
-            }
+            ErrorComponent(errorMessage)
         }
 
         HomeUIState.Loading -> {
@@ -288,9 +285,7 @@ fun HomeScreenCategoryState(
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (categoryState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage) {
-                //Bir şeyler yapıalcak
-            }
+            ErrorComponent(errorMessage)
         }
 
         is HomeUIState.Loading -> LoadingComponent()
@@ -355,9 +350,7 @@ fun HomeScreenMoviesState(
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (movieState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage) {
-                //Bir şeyler yapıalcak
-            }
+            ErrorComponent(errorMessage)
         }
 
         is HomeUIState.Loading -> LoadingComponent()

@@ -111,7 +111,7 @@ class ScreenHomeViewModel @Inject constructor(
                 }.onSuccess {
                     _imageState.value = HomeUIState.Success(it)
                 }.onError {
-                    _imageState.value = HomeUIState.Error(it.toString())
+                    _imageState.value = HomeUIState.Error(it.message)
                 }
             }
         }
@@ -128,12 +128,11 @@ class ScreenHomeViewModel @Inject constructor(
                     val allCategories = listOf(FilmCategoryEntity(category = "Tümü", isClicked = true)) + categories
                     _categoryState.value = HomeUIState.Success(allCategories)
                 }.onError {
-                    _categoryState.value = HomeUIState.Error(it.toString())
+                    _categoryState.value = HomeUIState.Error(it.message)
                 }
             }
         }
     }
-
 
     private fun getAllMovies(){
         viewModelScope.launch {
@@ -148,7 +147,7 @@ class ScreenHomeViewModel @Inject constructor(
                     fetchFavoritesAndUpdateMovies()
                     applyFilters()
                 }.onError {
-                    _filteredMovies.value = HomeUIState.Error(it.toString())
+                    _filteredMovies.value = HomeUIState.Error(it.message)
                 }
             }
         }

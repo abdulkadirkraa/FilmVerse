@@ -8,9 +8,10 @@ sealed interface NetworkResponse<out T> {
     data object Loading : NetworkResponse<Nothing>
     data object Empty : NetworkResponse<Nothing>
     sealed interface Error : NetworkResponse<Nothing> {
-        data class HttpError(val exception: HttpException) : Error
-        data class NetworkError(val exception: IOException) : Error
-        data class UnknownError(val exception: Throwable) : Error
+        val message: String
+        data class HttpError(val exception: HttpException, override val message: String) : Error
+        data class NetworkError(val exception: IOException, override val message: String) : Error
+        data class UnknownError(val exception: Throwable, override val message: String) : Error
     }
 }
 

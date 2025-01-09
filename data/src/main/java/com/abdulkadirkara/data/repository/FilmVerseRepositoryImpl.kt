@@ -41,7 +41,10 @@ class FilmVerseRepositoryImpl @Inject constructor(
     override suspend fun getAllCategories(): Flow<NetworkResponse<List<FilmCategoryEntity>>> {
         return safeApiCall(
             apiCall = { remoteDataSource.getAllMovies() },
-            transform = { response -> response.movies.map { film -> filmToFilmCategoryEntityMapper.map(film) } }
+            transform = { response ->
+                response.movies.map { filmToFilmCategoryEntityMapper.map(it) }
+                    .distinctBy { it.category }
+            }
         )
     }
 
