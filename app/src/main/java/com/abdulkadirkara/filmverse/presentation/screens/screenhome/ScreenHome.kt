@@ -119,8 +119,7 @@ fun ScreenHome(
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .collect { currentOffset ->
-                isVisible = currentOffset <= previousScrollOffset
-                previousScrollOffset = currentOffset
+                isVisible = currentOffset == 0
             }
     }
 
