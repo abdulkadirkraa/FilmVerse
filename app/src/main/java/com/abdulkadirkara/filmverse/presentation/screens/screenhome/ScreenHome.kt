@@ -1,6 +1,13 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -18,9 +25,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,15 +60,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -96,6 +110,19 @@ fun ScreenHome(
     val selectedRating by viewModel.selectedRating
     val verticalState = rememberScrollState()
     val filterCount by viewModel.filterCount
+
+    val density = LocalDensity.current
+    val listState = rememberLazyGridState()
+    var previousScrollOffset by remember { mutableIntStateOf(0) }
+    var isVisible by remember { mutableStateOf(true) }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemScrollOffset }
+            .collect { currentOffset ->
+                isVisible = currentOffset <= previousScrollOffset
+                previousScrollOffset = currentOffset
+            }
+    }
 
     LaunchedEffect(
         selectedCategories,
@@ -208,9 +235,17 @@ fun ScreenHome(
                     }
                 }
             }
-            HomeScreenImageState(imageState)
+            AnimatedVisibility(
+                visible = isVisible,
+                enter = slideInVertically { with(density) { -40.dp.roundToPx() } } + expandVertically(
+                    expandFrom = Alignment.Top
+                ) + fadeIn(initialAlpha = 0.3f),
+                exit = slideOutVertically { with(density) { -40.dp.roundToPx() } } + shrinkVertically() + fadeOut()
+            ){
+                HomeScreenImageState(imageState)
+            }
             HomeScreenCategoryState(categoryState, viewModel)
-            HomeScreenMoviesState(filteredMoviesState, navController, viewModel)
+            HomeScreenMoviesState(filteredMoviesState, navController, viewModel, listState)
         }
     }
 }
@@ -344,7 +379,8 @@ fun CategoryList(
 fun HomeScreenMoviesState(
     movieState: State<HomeUIState<List<FilmCardEntity>>>,
     navController: NavController,
-    viewModel: ScreenHomeViewModel
+    viewModel: ScreenHomeViewModel,
+    listState: LazyGridState
 ) {
     when (movieState.value) {
         is HomeUIState.Empty -> LoadingComponent()
@@ -356,7 +392,7 @@ fun HomeScreenMoviesState(
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardEntity>>).data
-            HomeScreenMovies(movies, {
+            HomeScreenMovies(movies, listState, {
                 //onFavoriteClick
                 viewModel.toggleFavorite(it)
             },{
@@ -371,12 +407,14 @@ fun HomeScreenMoviesState(
 @Composable
 fun HomeScreenMovies(
     films: List<FilmCardEntity>,
+    listState: LazyGridState,
     onFavoriteClick: (FilmCardEntity) -> Unit,
     onItemClicked: (FilmCardEntity) -> Unit
 ) {
     val filmState by remember { mutableStateOf(films) }
 
     LazyVerticalGrid(
+        state = listState,
         columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp)
