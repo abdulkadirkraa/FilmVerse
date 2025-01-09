@@ -148,10 +148,12 @@ fun ScreenHome(
                 filterCount = filterCount
             )
         }
-    ) {
+    ) { paddingValues ->
+        val topPadding = if (isVisible) 0.dp else paddingValues.calculateTopPadding()
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(top = topPadding)
         ) {
             if (showBottomSheet){
                 ModalBottomSheet(
