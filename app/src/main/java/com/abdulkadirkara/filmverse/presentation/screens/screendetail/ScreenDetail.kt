@@ -75,6 +75,7 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
     val context = LocalContext.current
+    val verticalState = rememberScrollState()
 
     val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
     val cartItemCount = viewModel.cartItemCount.collectAsState()
@@ -222,12 +223,11 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
             }
         }
     ) { paddingValues ->
-        val verticalState = rememberScrollState()
         Column(
             modifier = Modifier
-                .verticalScroll(verticalState)
                 .fillMaxWidth()
-                .padding(top = paddingValues.calculateTopPadding(), bottom = 16.dp),
+                .padding(paddingValues)
+                .verticalScroll(verticalState),
         ) {
             Row (
                 modifier = Modifier.fillMaxWidth().padding(4.dp),
