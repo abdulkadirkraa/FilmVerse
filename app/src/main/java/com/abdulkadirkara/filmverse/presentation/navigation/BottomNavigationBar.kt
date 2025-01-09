@@ -13,6 +13,9 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -22,10 +25,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.abdulkadirkara.domain.model.FilmCardEntity
@@ -42,9 +45,81 @@ import com.abdulkadirkara.filmverse.presentation.screens.scrennsearch.ScreenSear
 import com.google.gson.Gson
 
 @Composable
+fun BottomNavigationBarContent(
+    menuItems: List<BottomNavItem>,
+    navController: NavController,
+    choosenItem: MutableState<Int>,
+    cartItemCount: Int
+) {
+    BottomAppBar(
+        containerColor = Color.White,
+        content = {
+            menuItems.forEachIndexed { index, bottomNavItem ->
+                val selectedColor = Color(0xFF0D47A1)
+                val unselectedColor = Color.Gray
+
+                NavigationBarItem(
+                    selected = choosenItem.value == index,
+                    onClick = {
+                        choosenItem.value = index
+                        navController.navigate(bottomNavItem.screen.route) {
+                            launchSingleTop = true
+                            restoreState = true
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                        }
+                    },
+                    icon = {
+                        BadgeBox(cartItemCount, index == 2) {
+                            Image(
+                                imageVector = bottomNavItem.iconRes,
+                                contentDescription = null,
+                                colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
+                                    if (choosenItem.value == index) selectedColor else unselectedColor
+                                )
+                            )
+                        }
+                    },
+                    label = {
+                        Text(
+                            fontSize = 10.sp,
+                            text = bottomNavItem.label,
+                            style = TextStyle(
+                                fontWeight = if (choosenItem.value == index) FontWeight.Bold else FontWeight.Normal,
+                                color = if (choosenItem.value == index) selectedColor else unselectedColor
+                            )
+                        )
+                    }
+                )
+            }
+        }
+    )
+}
+
+@Composable
+fun BadgeBox(cartItemCount: Int, isCartIcon: Boolean, content: @Composable () -> Unit) {
+    if (isCartIcon && cartItemCount > 0) {
+        androidx.compose.material3.BadgedBox(
+            badge = {
+                androidx.compose.material3.Badge {
+                    Text(cartItemCount.toString(), fontSize = 8.sp)
+                }
+            }
+        ) {
+            content()
+        }
+    } else {
+        content()
+    }
+}
+
+@Composable
 fun BottomnavigationBar() {
-    val navController = rememberNavController() // Tek seferde oluşturulur.
+    val navController = rememberNavController()
     val choosenItem = remember { mutableIntStateOf(0) }
+    val cartViewModel: BottomBarCartViewModel = hiltViewModel()
+    val cartItemCount by cartViewModel.cartItemCount.collectAsState()
 
     val menuItems = listOf(
         BottomNavItem(Icons.Rounded.Home, "Anasayfa", Screens.ScreenHome),
@@ -54,59 +129,14 @@ fun BottomnavigationBar() {
         BottomNavItem(Icons.Rounded.Person, "Profil", Screens.ScreenProfile),
     )
 
-    val currentDestination = navController.currentBackStackEntryAsState().value?.destination?.route
-    val showBottomBar = when {
-        currentDestination?.startsWith(Screens.ScreenDetail.route) == true -> false
-        else -> true
-    }
-
     Scaffold(
         bottomBar = {
-            if (showBottomBar) {
-                BottomAppBar(
-                    containerColor = Color.White,
-                    content = {
-                        menuItems.forEachIndexed { index, bottomNavItem ->
-                            val selectedColor = Color(0xFF0D47A1)
-                            val unselectedColor = Color.Gray
-
-                            NavigationBarItem(
-                                selected = choosenItem.intValue == index,
-                                onClick = {
-                                    choosenItem.intValue = index
-                                    navController.navigate(bottomNavItem.screen.route) {
-                                        launchSingleTop = true
-                                        restoreState = true
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                    }
-                                },
-                                icon = {
-                                    Image(
-                                        imageVector = bottomNavItem.iconRes,
-                                        contentDescription = null,
-                                        colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
-                                            if (choosenItem.intValue == index) selectedColor else unselectedColor
-                                        )
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        fontSize = 10.sp,
-                                        text = bottomNavItem.label,
-                                        style = TextStyle(
-                                            fontWeight = if (choosenItem.intValue == index) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (choosenItem.intValue == index) selectedColor else unselectedColor
-                                        )
-                                    )
-                                }
-                            )
-                        }
-                    }
-                )
-
-            }
+            BottomNavigationBarContent(
+                menuItems = menuItems,
+                navController = navController,
+                choosenItem = choosenItem,
+                cartItemCount = cartItemCount
+            )
         }
     ) { paddingValues ->
         NavHost(
@@ -144,7 +174,6 @@ fun BottomnavigationBar() {
         }
     }
 }
-
 
 data class BottomNavItem(
     val iconRes: ImageVector,
