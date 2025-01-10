@@ -2,6 +2,10 @@ package com.abdulkadirkara.filmverse.presentation.screens.screenhome
 
 import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -25,13 +29,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -92,12 +94,13 @@ import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun ScreenHome(
+fun SharedTransitionScope.ScreenHome(
     navController: NavController,
-    viewModel: ScreenHomeViewModel = hiltViewModel()
+    viewModel: ScreenHomeViewModel = hiltViewModel(),
+    animatedVisibilityScope: AnimatedVisibilityScope
 ) {
     val imageState = viewModel.imageState.observeAsState(HomeUIState.Loading)
     val categoryState = viewModel.categoryState.observeAsState(HomeUIState.Loading)
@@ -110,10 +113,10 @@ fun ScreenHome(
     val selectedRating by viewModel.selectedRating
     val verticalState = rememberScrollState()
     val filterCount by viewModel.filterCount
+    val isFilterSelected by viewModel.isFilterSelected
 
     val density = LocalDensity.current
     val listState = rememberLazyGridState()
-    var previousScrollOffset by remember { mutableIntStateOf(0) }
     var isVisible by remember { mutableStateOf(true) }
 
     LaunchedEffect(listState) {
@@ -135,8 +138,6 @@ fun ScreenHome(
     LaunchedEffect(filteredMoviesState.value) {
         viewModel.updateMoviesWithFavorites()
     }
-
-    val isFilterSelected by viewModel.isFilterSelected
 
     Scaffold(
         topBar = {
@@ -183,7 +184,7 @@ fun ScreenHome(
                                 horizontalArrangement = Arrangement.End
                             ) {
                                 TextButton(onClick = {
-                                    viewModel.clearFilters() // Filtreleri sıfırlamak için
+                                    viewModel.clearFilters()
                                     showBottomSheet = false
                                 }) {
                                     Text(text = "Tümünü Kaldır", color = MaterialTheme.colorScheme.primary)
@@ -246,7 +247,8 @@ fun ScreenHome(
                 HomeScreenImageState(imageState)
             }
             HomeScreenCategoryState(categoryState, viewModel)
-            HomeScreenMoviesState(filteredMoviesState, navController, viewModel, listState)
+            HomeScreenMoviesState(animatedVisibilityScope = animatedVisibilityScope,
+                filteredMoviesState, navController, viewModel, listState)
         }
     }
 }
@@ -255,7 +257,6 @@ fun ScreenHome(
 fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) {
     when (imageState.value) {
         is HomeUIState.Empty -> {
-            //boşşsa diye uygun bir lottie animasyon ile component kullanılabilir
             LoadingComponent()
         }
 
@@ -376,15 +377,17 @@ fun CategoryList(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreenMoviesState(
+fun SharedTransitionScope.HomeScreenMoviesState(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     movieState: State<HomeUIState<List<FilmCardEntity>>>,
     navController: NavController,
     viewModel: ScreenHomeViewModel,
-    listState: LazyGridState
+    listState: LazyGridState,
 ) {
     when (movieState.value) {
-        is HomeUIState.Empty -> LoadingComponent()
+        is HomeUIState.Empty -> LoadingComponent() // TODO: EmptyComponenet
         is HomeUIState.Error -> {
             val errorMessage = (movieState.value as HomeUIState.Error).message
             ErrorComponent(errorMessage)
@@ -393,7 +396,9 @@ fun HomeScreenMoviesState(
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardEntity>>).data
-            HomeScreenMovies(movies, listState, {
+            HomeScreenMovies(
+                animatedVisibilityScope = animatedVisibilityScope,
+                movies, listState, {
                 //onFavoriteClick
                 viewModel.toggleFavorite(it)
             },{
@@ -405,8 +410,10 @@ fun HomeScreenMoviesState(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun HomeScreenMovies(
+fun SharedTransitionScope.HomeScreenMovies(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     films: List<FilmCardEntity>,
     listState: LazyGridState,
     onFavoriteClick: (FilmCardEntity) -> Unit,
@@ -423,6 +430,7 @@ fun HomeScreenMovies(
         items(filmState.size) { index ->
             val film = filmState[index]
             FilmCardItem(
+                animatedVisibilityScope = animatedVisibilityScope,
                 film = film,
                 onFavoriteClick = { onFavoriteClick(it) },
                 onItemClicked = { onItemClicked(it) }
@@ -431,8 +439,10 @@ fun HomeScreenMovies(
     }
 }
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun FilmCardItem(
+fun SharedTransitionScope.FilmCardItem(
+    animatedVisibilityScope: AnimatedVisibilityScope,
     film: FilmCardEntity,
     onFavoriteClick: (FilmCardEntity) -> Unit,
     onItemClicked: (FilmCardEntity) -> Unit
@@ -441,7 +451,7 @@ fun FilmCardItem(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
-            .height(400.dp)
+            .height(300.dp)
             .clickable { onItemClicked(film) },
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp)
@@ -453,12 +463,19 @@ fun FilmCardItem(
                     .weight(1f)
             ) {
                 CustomImage(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .sharedElement(
+                            state = rememberSharedContentState("image/${film.image}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                tween(durationMillis = 1000)
+                            }
+                        ),
                     imageUrl = film.image,
-                    contentScale = ContentScale.FillHeight
+                    contentScale = ContentScale.FillWidth
                 )
 
-                // Favori butonu
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -505,7 +522,15 @@ fun FilmCardItem(
                     text = film.name,
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp,
-                    modifier = Modifier.padding(bottom = 2.dp)
+                    modifier = Modifier
+                        .padding(bottom = 2.dp)
+                        .sharedElement(
+                            state = rememberSharedContentState("title/${film.name}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                tween(durationMillis = 1000)
+                            }
+                        )
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
@@ -515,13 +540,29 @@ fun FilmCardItem(
                         modifier = Modifier.size(24.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = film.rating.toString(), fontSize = 14.sp)
+                    Text(
+                        modifier = Modifier.sharedElement(
+                            state = rememberSharedContentState("rating/${film.rating}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                tween(durationMillis = 1000)
+                            }
+                        ),
+                        text = film.rating.toString(),
+                        fontSize = 14.sp)
                 }
                 Text(
                     text = "${film.price} ₺",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(vertical = 4.dp)
+                        .sharedElement(
+                            state = rememberSharedContentState("price/${film.price}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                tween(durationMillis = 1000)
+                            }
+                        )
                 )
             }
         }

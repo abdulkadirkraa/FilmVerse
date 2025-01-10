@@ -27,6 +27,7 @@ import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 
 @Composable
 fun DetailScreenCustomTopAppBar(
+    modifier: Modifier = Modifier,
     title: String,
     cartItemCount: Int,
     onBackClick: () -> Unit,
@@ -52,9 +53,7 @@ fun DetailScreenCustomTopAppBar(
             fontWeight = FontWeight.Bold,
             color = Color.Black,
             fontFamily = babasNeue,
-            modifier = Modifier
-                .weight(1f)
-                .padding(start = 16.dp)
+            modifier = modifier.weight(1f).padding(start = 16.dp)
         )
 
         Row(

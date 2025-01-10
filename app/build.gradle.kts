@@ -96,4 +96,6 @@ dependencies {
     implementation(libs.coil.network.okhttp)
     //Lottie
     implementation(libs.lottie.compose)
+    //Shared Element Transition Animation
+    implementation(libs.androidx.compose.animation)
 }

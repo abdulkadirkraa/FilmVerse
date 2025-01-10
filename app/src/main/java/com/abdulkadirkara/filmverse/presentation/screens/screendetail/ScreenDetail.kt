@@ -3,6 +3,10 @@ package com.abdulkadirkara.filmverse.presentation.screens.screendetail
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -69,8 +73,13 @@ import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: ScreenDetailViewModel = hiltViewModel()) {
+fun SharedTransitionScope.ScreenDetail(
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    film: FilmCardEntity,
+    navController: NavController,
+    viewModel: ScreenDetailViewModel = hiltViewModel()) {
     val isFavorite by viewModel.favoriteStatus.collectAsState()
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
@@ -85,7 +94,7 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
     }
 
     LaunchedEffect(isFavorite) {
-
+        viewModel.toggleFavorite(film)
     }
 
     LaunchedEffect(insertMovieResult) {
@@ -106,6 +115,14 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
     Scaffold(
         topBar = {
             DetailScreenCustomTopAppBar(
+                modifier = Modifier
+                    .sharedElement(
+                        state = rememberSharedContentState("title/${film.name}"),
+                        animatedVisibilityScope = animatedVisibilityScope,
+                        boundsTransform = { _, _ ->
+                            tween(durationMillis = 1000)
+                        }
+                    ),
                 title = film.name,
                 cartItemCount = cartItemCount.value,
                 onBackClick = { navController.popBackStack() },
@@ -186,6 +203,13 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                         fontWeight = FontWeight.Bold,
                         color = Color.Black,
                         modifier = Modifier.padding(4.dp).weight(50f)
+                            .sharedElement(
+                                state = rememberSharedContentState("price/${film.price}"),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                boundsTransform = { _, _ ->
+                                    tween(durationMillis = 1000)
+                                }
+                            )
                     )
                     Card(
                         modifier = Modifier
@@ -236,7 +260,14 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
             ){
                 CustomImage(
                     imageUrl = film.image,
-                    modifier = Modifier.weight(50f),
+                    modifier = Modifier.weight(50f)
+                        .sharedElement(
+                            state = rememberSharedContentState("image/${film.image}"),
+                            animatedVisibilityScope = animatedVisibilityScope,
+                            boundsTransform = { _, _ ->
+                                tween(durationMillis = 1000)
+                            }
+                        ),
                     contentScale = ContentScale.FillHeight,
                     imageSize = DpSize(150.dp, 200.dp)
                 )
@@ -276,7 +307,16 @@ fun ScreenDetail(film: FilmCardEntity, navController: NavController, viewModel: 
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(text = film.rating.toString(), fontSize = 16.sp)
+                        Text(
+                            modifier = Modifier.sharedElement(
+                                state = rememberSharedContentState("rating/${film.rating}"),
+                                animatedVisibilityScope = animatedVisibilityScope,
+                                boundsTransform = { _, _ ->
+                                    tween(durationMillis = 1000)
+                                }
+                            ),
+                            text = film.rating.toString(),
+                            fontSize = 16.sp)
                     }
                     Text(
                         text = film.director,

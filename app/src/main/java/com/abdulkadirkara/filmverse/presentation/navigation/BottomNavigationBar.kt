@@ -1,5 +1,7 @@
 package com.abdulkadirkara.filmverse.presentation.navigation
 
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -100,7 +102,6 @@ fun BottomNavigationBarContent(
     )
 }
 
-
 @Composable
 fun BadgeBox(badgeCount: Int, isCartIcon: Boolean, content: @Composable () -> Unit) {
     if (badgeCount > 0) {
@@ -118,7 +119,7 @@ fun BadgeBox(badgeCount: Int, isCartIcon: Boolean, content: @Composable () -> Un
     }
 }
 
-
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BottomnavigationBar() {
     val navController = rememberNavController()
@@ -134,48 +135,50 @@ fun BottomnavigationBar() {
         BottomNavItem(Icons.Rounded.Person, "Profil", Screens.ScreenProfile)
     )
 
-
-    Scaffold(
-        bottomBar = {
-            BottomNavigationBarContent(
-                menuItems = menuItems,
+    SharedTransitionLayout {
+        Scaffold(
+            bottomBar = {
+                BottomNavigationBarContent(
+                    menuItems = menuItems,
+                    navController = navController,
+                    choosenItem = choosenItem,
+                    cartItemCount = cartItemCount
+                )
+            }
+        ) { paddingValues ->
+            NavHost(
                 navController = navController,
-                choosenItem = choosenItem,
-                cartItemCount = cartItemCount
-            )
-        }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Screens.ScreenHome.route,
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable(Screens.ScreenHome.route) {
-                val viewModel: ScreenHomeViewModel = hiltViewModel()
-                ScreenHome(navController, viewModel)
-            }
-            composable(
-                route = "${Screens.ScreenDetail.route}/{film}",
-                arguments = listOf(navArgument("film") { type = NavType.StringType })
+                startDestination = Screens.ScreenHome.route,
+                modifier = Modifier.padding(paddingValues)
             ) {
-                val json = it.arguments?.getString("film")
-                val film = Gson().fromJson(json, FilmCardEntity::class.java)
-                val viewModel: ScreenDetailViewModel = hiltViewModel()
-                ScreenDetail(film, navController, viewModel)
-            }
-            composable(Screens.ScreenCard.route) {
-                val viewModel: ScreenCardViewModel = hiltViewModel()
-                ScreenCard(viewModel)
-            }
-            composable(Screens.ScreenFavorites.route) {
-                val viewModel: ScreenFavoritesViewModel = hiltViewModel()
-                ScreenFavorites(viewModel)
-            }
-            composable(Screens.ScreenProfile.route) {
-                ScreenProfile()
-            }
-            composable(Screens.ScreenSearch.route) {
-                ScreenSearch()
+                composable(Screens.ScreenHome.route) {
+                    val viewModel: ScreenHomeViewModel = hiltViewModel()
+                    ScreenHome(navController, viewModel, animatedVisibilityScope = this)
+                }
+                composable(
+                    route = "${Screens.ScreenDetail.route}/{film}",
+                    arguments = listOf(navArgument("film") { type = NavType.StringType })
+                ) {
+                    val json = it.arguments?.getString("film")
+                    val film = Gson().fromJson(json, FilmCardEntity::class.java)
+                    val viewModel: ScreenDetailViewModel = hiltViewModel()
+                    ScreenDetail(animatedVisibilityScope = this,
+                        film, navController, viewModel)
+                }
+                composable(Screens.ScreenCard.route) {
+                    val viewModel: ScreenCardViewModel = hiltViewModel()
+                    ScreenCard(viewModel)
+                }
+                composable(Screens.ScreenFavorites.route) {
+                    val viewModel: ScreenFavoritesViewModel = hiltViewModel()
+                    ScreenFavorites(viewModel)
+                }
+                composable(Screens.ScreenProfile.route) {
+                    ScreenProfile()
+                }
+                composable(Screens.ScreenSearch.route) {
+                    ScreenSearch()
+                }
             }
         }
     }
