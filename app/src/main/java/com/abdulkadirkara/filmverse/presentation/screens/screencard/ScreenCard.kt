@@ -49,16 +49,28 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
 import com.abdulkadirkara.filmverse.presentation.screens.components.LoadingComponent
 
+/**
+ * Composable function representing the screen card UI.
+ * Displays a list of movie items in the cart and provides options to manage cart items.
+ *
+ * @param viewModel The view model used to fetch and manage the cart data.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScreenCard(
     viewModel: ScreenCardViewModel = hiltViewModel()
 ) {
+    // Observing product count and movie card state from the ViewModel
     val productCount by viewModel.productCount.observeAsState(0)
     val movieCardState by viewModel.movieCardState.observeAsState(CardUIState.Loading)
+
+    // Remembering selected states of the items in the cart
     val selectedStates = remember { mutableStateMapOf<Int, Boolean>() }
+
+    // Context for showing Toast messages
     val context = LocalContext.current
 
+    // Initialize selected states for each item when the data is loaded
     LaunchedEffect(movieCardState) {
         if (movieCardState is CardUIState.Success) {
             val movieList = (movieCardState as CardUIState.Success<List<ScreenCardUIData>>).data
@@ -68,12 +80,13 @@ fun ScreenCard(
         }
     }
 
+    // Calculating the total price for the selected items
     val totalPrice by remember {
         derivedStateOf {
             if (movieCardState is CardUIState.Success) {
                 calculateTotalPrice(
-                    (movieCardState as CardUIState.Success<List<ScreenCardUIData>>).data,
-                    selectedStates
+                    movieList = (movieCardState as CardUIState.Success<List<ScreenCardUIData>>).data,
+                    selectedStates = selectedStates
                 )
             } else {
                 0
@@ -84,11 +97,17 @@ fun ScreenCard(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Sepetim - $productCount ürün") }
+                title = { Text(text = "Sepetim - $productCount ürün") }
             )
         },
         bottomBar = {
-            BottomBar(totalPrice, selectedStates, movieCardState, viewModel)
+            // Bottom bar displaying the total price and an option to delete selected movies
+            BottomBar(
+                totalPrice = totalPrice,
+                selectedStates = selectedStates,
+                movieCardState = movieCardState,
+                viewModel = viewModel
+            )
         }
     ) { paddingValues ->
         when (movieCardState) {
@@ -104,12 +123,26 @@ fun ScreenCard(
             }
             is CardUIState.Success -> {
                 val movieList = (movieCardState as CardUIState.Success<List<ScreenCardUIData>>).data
-                MovieStateSuccess(paddingValues, movieList, viewModel, selectedStates)
+                MovieStateSuccess(
+                    paddingValues = paddingValues,
+                    movieList = movieList,
+                    viewModel = viewModel,
+                    selectedStates = selectedStates
+                )
             }
         }
     }
 }
 
+/**
+ * Composable function representing the bottom bar UI.
+ * Displays the total price and a button to delete selected items from the cart.
+ *
+ * @param totalPrice The calculated total price of the selected items in the cart.
+ * @param selectedStates A map of selected states for each item in the cart.
+ * @param movieCardState The current state of the movie card data.
+ * @param viewModel The view model used to manage the cart data and handle item deletion.
+ */
 @Composable
 fun BottomBar(
     totalPrice: Int,
@@ -125,8 +158,12 @@ fun BottomBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Displaying the total price section
             Column (
-                modifier = Modifier.fillMaxWidth().weight(50f).padding(8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(50f)
+                    .padding(8.dp),
                 horizontalAlignment = Alignment.Start,
                 verticalArrangement = Arrangement.Center
             ) {
@@ -142,13 +179,15 @@ fun BottomBar(
                     color = Color(0xFF0D47A1)
                 )
             }
+            // A card button to delete selected items from the cart
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(50f)
                     .clickable {
-                        viewModel.deleteSelectedMovies(selectedStates)
-                        viewModel.updateCartItemCount(-movieCardState.data.sumOf { it.orderAmount })
+                        // Triggering deletion of selected items when clicked
+                        viewModel.deleteSelectedMovies(selectedStates = selectedStates)
+                        viewModel.updateCartItemCount(newCount = -movieCardState.data.sumOf { it.orderAmount })
                     },
                 shape = RoundedCornerShape(10.dp),
                 colors = CardDefaults.cardColors(
@@ -169,6 +208,13 @@ fun BottomBar(
     }
 }
 
+/**
+ * Helper function to calculate the total price of the selected items in the cart.
+ *
+ * @param movieList A list of movies in the cart.
+ * @param selectedStates A map of selected states for each movie item.
+ * @return The total price of the selected items in the cart.
+ */
 private fun calculateTotalPrice(
     movieList: List<ScreenCardUIData>,
     selectedStates: MutableMap<Int, Boolean>
@@ -182,6 +228,15 @@ private fun calculateTotalPrice(
     return totalPrice
 }
 
+/**
+ * Displays a list of movies in the shopping cart with their details.
+ * Allows users to select or deselect movies and delete them from the cart.
+ *
+ * @param paddingValues The padding values to be applied to the LazyColumn.
+ * @param movieList The list of movies to display in the cart.
+ * @param viewModel The ViewModel responsible for managing cart data and performing actions.
+ * @param selectedStates A map to track which movies are selected in the cart.
+ */
 @Composable
 fun MovieStateSuccess(
     paddingValues: PaddingValues,
@@ -194,26 +249,32 @@ fun MovieStateSuccess(
             .fillMaxSize()
             .padding(paddingValues)
     ) {
-        item {
-            // Sepete özel indirim placeholder
-        }
+
         itemsIndexed(movieList) { index, movie ->
             val isChecked = selectedStates[index] ?: true
             MovieCardItem(
                 movie = movie,
                 isChecked = isChecked,
                 onCheckedChange = { isSelected ->
-                    selectedStates[index] = isSelected
+                    selectedStates[index] = isSelected // Update the selected state when checkbox is toggled
                 },
                 onDelete = {
-                    viewModel.deleteMovieCard(movie.cartId)
-                    viewModel.updateCartItemCount(-movie.orderAmount)
+                    viewModel.deleteMovieCard(cartIds = movie.cartId) // Delete the selected movie from the cart
+                    viewModel.updateCartItemCount(newCount = -movie.orderAmount) // Update the cart item count after deletion
                 }
             )
         }
     }
 }
 
+/**
+ * Displays a single movie item in the cart with an option to delete it or change its selection status.
+ *
+ * @param movie The movie data to display.
+ * @param isChecked Indicates whether the movie is selected or not.
+ * @param onCheckedChange A callback to handle changes in the selection state.
+ * @param onDelete A callback to delete the movie from the cart.
+ */
 @Composable
 fun MovieCardItem(
     movie: ScreenCardUIData,
@@ -221,22 +282,23 @@ fun MovieCardItem(
     onCheckedChange: (Boolean) -> Unit,
     onDelete: () -> Unit
 ) {
-    var showDialog by remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) } // State to control the display of the confirmation dialog.
 
+    // Display an AlertDialog for confirmation before deleting a movie from the cart.
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
             confirmButton = {
                 TextButton(onClick = {
                     showDialog = false
-                    onDelete()
+                    onDelete() // Call the onDelete callback if the user confirms the deletion
                 }) {
-                    Text("Evet")
+                    Text(text = "Evet")
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDialog = false }) {
-                    Text("Hayır")
+                    Text(text = "Hayır")
                 }
             },
             title = { Text("Silme İşlemi") },
@@ -244,6 +306,7 @@ fun MovieCardItem(
         )
     }
 
+    // Display the movie's details inside a card view.
     OutlinedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -257,6 +320,7 @@ fun MovieCardItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Checkbox to select/deselect the movie in the cart.
             Checkbox(
                 checked = isChecked,
                 onCheckedChange = { onCheckedChange(it) },
@@ -269,6 +333,7 @@ fun MovieCardItem(
                 imageSize = DpSize(80.dp, 80.dp)
             )
 
+            // Display movie details such as name, category, price, and order amount.
             Column(
                 modifier = Modifier
                     .padding(8.dp)
@@ -300,15 +365,18 @@ fun MovieCardItem(
                 )
             }
 
+            // Display the delete button and the total price for the movie.
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .weight(0.2f)
                     .padding(start = 8.dp)
             ) {
+                // Button to trigger the confirmation dialog for deleting the movie.
                 IconButton(onClick = { showDialog = true }) {
                     Icon(Icons.Filled.Delete, contentDescription = null)
                 }
+                // Display the total price for the selected quantity of the movie.
                 Text(
                     text = "${(movie.price * movie.orderAmount)}₺",
                     fontSize = 16.sp,

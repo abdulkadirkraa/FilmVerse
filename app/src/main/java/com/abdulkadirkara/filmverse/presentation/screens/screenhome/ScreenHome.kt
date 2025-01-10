@@ -62,7 +62,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -94,6 +93,21 @@ import com.google.gson.Gson
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+/**
+ * Composable function for rendering the home screen with movie categories, filtered movies, and an optional bottom sheet for filtering options.
+ *
+ * @param navController The NavController instance used for navigation within the app.
+ * @param viewModel The ViewModel instance associated with this screen, responsible for managing UI-related data.
+ * @param animatedVisibilityScope The scope used for controlling animated visibility transitions of UI elements.
+ *
+ * This composable displays the home screen of the app, which includes a custom top bar,
+ * a list of movie categories, the filtered list of movies, and a bottom sheet that allows users
+ * to apply filters based on categories, directors, and ratings.
+ *
+ * The bottom sheet can be triggered by clicking the filter icon in the top bar, and users can
+ * apply, update, or clear filters. The movie list is displayed below the top bar and is updated
+ * based on the selected filters.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
@@ -102,12 +116,17 @@ fun SharedTransitionScope.ScreenHome(
     viewModel: ScreenHomeViewModel = hiltViewModel(),
     animatedVisibilityScope: AnimatedVisibilityScope
 ) {
+    // Observing the UI state for image, category, and filtered movies
     val imageState = viewModel.imageState.observeAsState(HomeUIState.Loading)
     val categoryState = viewModel.categoryState.observeAsState(HomeUIState.Loading)
     val filteredMoviesState = viewModel.filteredMovies.observeAsState(HomeUIState.Loading)
     val bottomSheetState = rememberModalBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
+
+    // Local state for bottom sheet visibility
     var showBottomSheet by remember { mutableStateOf(false) }
+
+    // Observing selected categories, directors, rating, and filter count
     val selectedCategories by viewModel.selectedCategories
     val selectedDirectors by viewModel.selectedDirectors
     val selectedRating by viewModel.selectedRating
@@ -115,10 +134,12 @@ fun SharedTransitionScope.ScreenHome(
     val filterCount by viewModel.filterCount
     val isFilterSelected by viewModel.isFilterSelected
 
+    // State to detect visibility of the top bar based on scroll
     val density = LocalDensity.current
     val listState = rememberLazyGridState()
     var isVisible by remember { mutableStateOf(true) }
 
+    // Detecting scroll position to toggle visibility of the top bar
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemScrollOffset }
             .collect { currentOffset ->
@@ -126,6 +147,7 @@ fun SharedTransitionScope.ScreenHome(
             }
     }
 
+    // Applying filters when any selection changes
     LaunchedEffect(
         selectedCategories,
         selectedDirectors,
@@ -135,6 +157,7 @@ fun SharedTransitionScope.ScreenHome(
         viewModel.applyFilters()
     }
 
+    // Updating movies with favorites once filtered movies state changes
     LaunchedEffect(filteredMoviesState.value) {
         viewModel.updateMoviesWithFavorites()
     }
@@ -143,19 +166,23 @@ fun SharedTransitionScope.ScreenHome(
         topBar = {
             HomeScreenCustomTopBar(
                 onFilterClick = {
-                    showBottomSheet = true
+                    showBottomSheet =
+                        true // Show the bottom sheet when the filter button is clicked
                 },
                 filterCount = filterCount
             )
         }
     ) { paddingValues ->
+        // If the screen is not scrolled (animated visibility is true), no padding is added (0.dp) to the top bar.
+        // If the screen is scrolled (animated visibility is false), top padding is applied to create space between the top bar and content.
         val topPadding = if (isVisible) 0.dp else paddingValues.calculateTopPadding()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(top = topPadding)
         ) {
-            if (showBottomSheet){
+            // Bottom sheet that displays filtering options for categories, directors, and ratings
+            if (showBottomSheet) {
                 ModalBottomSheet(
                     sheetState = bottomSheetState,
                     onDismissRequest = { coroutineScope.launch { showBottomSheet = false } },
@@ -174,10 +201,14 @@ fun SharedTransitionScope.ScreenHome(
                         )
                     }
                 ) {
+                    // Filter options for categories, directors, and rating
                     Column(
-                        modifier = Modifier.padding(16.dp).verticalScroll(verticalState),
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .verticalScroll(verticalState),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
+                        // Clear filters button when filters are applied
                         if (isFilterSelected) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -187,11 +218,15 @@ fun SharedTransitionScope.ScreenHome(
                                     viewModel.clearFilters()
                                     showBottomSheet = false
                                 }) {
-                                    Text(text = "Tümünü Kaldır", color = MaterialTheme.colorScheme.primary)
+                                    Text(
+                                        text = "Tümünü Kaldır",
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 }
                             }
                         }
 
+                        // Category filter selection
                         Text(text = "Kategori Seçin", style = MaterialTheme.typography.titleMedium)
                         FilterChipGroup(
                             categories = listOf("Action", "Drama", "Science Fiction", "Fantastic"),
@@ -203,11 +238,23 @@ fun SharedTransitionScope.ScreenHome(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Director filter selection
                         Text(text = "Yönetmen Seçin", style = MaterialTheme.typography.titleMedium)
                         FilterChipGroup(
-                            categories = listOf("J.J. Abrams", "Baz Luhrmann", "Terry Gilliam", "David Fincher", "Peter Jackson",
-                                "Todd Phillips", "Chris Columbus", "Chad Stahelski", "Brian De Palma", "Roman Polanski",
-                                "Denis Villeneuve", "Christopher Nolan", "Quentin Tarantino"
+                            categories = listOf(
+                                "J.J. Abrams",
+                                "Baz Luhrmann",
+                                "Terry Gilliam",
+                                "David Fincher",
+                                "Peter Jackson",
+                                "Todd Phillips",
+                                "Chris Columbus",
+                                "Chad Stahelski",
+                                "Brian De Palma",
+                                "Roman Polanski",
+                                "Denis Villeneuve",
+                                "Christopher Nolan",
+                                "Quentin Tarantino"
                             ),
                             selectedCategories = selectedDirectors,
                             onCategorySelected = { director ->
@@ -217,7 +264,11 @@ fun SharedTransitionScope.ScreenHome(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text(text = "Rating: ${selectedRating.toInt()}", style = MaterialTheme.typography.titleMedium)
+                        // Rating filter selection
+                        Text(
+                            text = "Rating: ${selectedRating.toInt()}",
+                            style = MaterialTheme.typography.titleMedium
+                        )
                         Slider(
                             value = selectedRating,
                             onValueChange = { rating -> viewModel.updateSelectedRating(rating) },
@@ -228,6 +279,7 @@ fun SharedTransitionScope.ScreenHome(
 
                         Spacer(modifier = Modifier.height(16.dp))
 
+                        // Apply button to save the filters and close the bottom sheet
                         Button(onClick = {
                             viewModel.applyFilters()
                             showBottomSheet = false
@@ -237,22 +289,41 @@ fun SharedTransitionScope.ScreenHome(
                     }
                 }
             }
+            // Animated visibility of home screen image based on scroll state
             AnimatedVisibility(
                 visible = isVisible,
                 enter = slideInVertically { with(density) { -40.dp.roundToPx() } } + expandVertically(
                     expandFrom = Alignment.Top
                 ) + fadeIn(initialAlpha = 0.3f),
                 exit = slideOutVertically { with(density) { -40.dp.roundToPx() } } + shrinkVertically() + fadeOut()
-            ){
-                HomeScreenImageState(imageState)
+            ) {
+                HomeScreenImageState(imageState = imageState)
             }
-            HomeScreenCategoryState(categoryState, viewModel)
-            HomeScreenMoviesState(animatedVisibilityScope = animatedVisibilityScope,
-                filteredMoviesState, navController, viewModel, listState)
+            // Display the movie categories and the filtered movies
+            HomeScreenCategoryState(categoryState = categoryState, viewModel = viewModel)
+            HomeScreenMoviesState(
+                animatedVisibilityScope = animatedVisibilityScope,
+                movieState = filteredMoviesState,
+                navController = navController,
+                viewModel = viewModel,
+                listState = listState
+            )
         }
     }
 }
 
+/**
+ * A Composable function that displays different UI states (Loading, Error, Empty, Success)
+ * based on the provided [imageState].
+ *
+ * @param imageState A [State] object containing the current UI state of type [HomeUIState<List<FilmImageEntity>>].
+ *                   This state can represent one of the following states:
+ *                   - [HomeUIState.Empty]: No data is available to display.
+ *                   - [HomeUIState.Error]: An error occurred while fetching the data. Displays an error message.
+ *                   - [HomeUIState.Loading]: Data is being loaded, displays a loading component.
+ *                   - [HomeUIState.Success]: Data loaded successfully, displays a [HomeScreenViewPager]
+ *                     with images from the list of [FilmImageEntity].
+ */
 @Composable
 fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) {
     when (imageState.value) {
@@ -262,7 +333,7 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) 
 
         is HomeUIState.Error -> {
             val errorMessage = (imageState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage)
+            ErrorComponent(errorMessage = errorMessage)
         }
 
         HomeUIState.Loading -> {
@@ -271,25 +342,42 @@ fun HomeScreenImageState(imageState: State<HomeUIState<List<FilmImageEntity>>>) 
 
         is HomeUIState.Success -> {
             val imageList = (imageState.value as HomeUIState.Success<List<FilmImageEntity>>).data
-            HomeScreenViewPager(imageList)
+            HomeScreenViewPager(imageList = imageList)
         }
     }
 }
 
+/**
+ * A Composable function that displays a horizontal view pager with images.
+ * It automatically cycles through the images every 2 seconds, showing one image at a time.
+ *
+ * @param imageList A list of [FilmImageEntity] representing the images to be displayed in the pager.
+ *                  Each [FilmImageEntity] contains an image URL to load.
+ *
+ * This function uses [HorizontalPager] from the Pager API to display the images and animate
+ * the scrolling behavior. It also includes a delay of 2 seconds between each page scroll.
+ */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun HomeScreenViewPager(imageList: List<FilmImageEntity>) {
+    // State for the pager, initialized with the number of pages based on imageList size.
     val pagerState = rememberPagerState(pageCount = imageList.size)
+
+    // Coroutine that triggers automatic scroll every 2 seconds
     LaunchedEffect(Unit) {
         while (true) {
             delay(2000)
             pagerState.animateScrollToPage((pagerState.currentPage + 1) % imageList.size)
         }
     }
+
+    // Column to hold the view pager
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+        // HorizontalPager displays the images based on the pagerState
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
@@ -298,11 +386,11 @@ fun HomeScreenViewPager(imageList: List<FilmImageEntity>) {
             verticalAlignment = Alignment.CenterVertically
         ) { currentPage ->
             Card(
-                modifier = Modifier
-                    .fillMaxSize()
-                ,
+                modifier = Modifier.fillMaxSize(),
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
+                // CustomImage composable to load and display the image for the current film using Coil.
+                // It fetches the image by combining the base URL with the image path and scales it to fit the container.
                 CustomImage(
                     modifier = Modifier.fillMaxSize(),
                     imageUrl = imageList[currentPage].image,
@@ -313,6 +401,23 @@ fun HomeScreenViewPager(imageList: List<FilmImageEntity>) {
     }
 }
 
+/**
+ * A Composable function that displays different UI states (Loading, Error, Empty, Success)
+ * for the category list in the home screen.
+ *
+ * @param categoryState A [State] object containing the current UI state of type [HomeUIState<List<FilmCategoryEntity>>].
+ *                      This state can represent one of the following:
+ *                      - [HomeUIState.Empty]: No category data is available to display.
+ *                      - [HomeUIState.Error]: An error occurred while fetching category data. Displays an error message.
+ *                      - [HomeUIState.Loading]: Data is being loaded, displays a loading component.
+ *                      - [HomeUIState.Success]: Data loaded successfully, displays a list of categories
+ *                        with the ability to select a category.
+ * @param viewModel The [ScreenHomeViewModel] that is responsible for handling category selection actions.
+ *
+ * This function manages different UI states for displaying categories. On success, it shows a list of categories,
+ * allowing the user to select one. The selected category is passed back to the [viewModel] through the
+ * [viewModel.selectCategory] function.
+ */
 @Composable
 fun HomeScreenCategoryState(
     categoryState: State<HomeUIState<List<FilmCategoryEntity>>>,
@@ -322,12 +427,13 @@ fun HomeScreenCategoryState(
         is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (categoryState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage)
+            ErrorComponent(errorMessage = errorMessage)
         }
 
         is HomeUIState.Loading -> LoadingComponent()
         is HomeUIState.Success -> {
-            val categories = (categoryState.value as HomeUIState.Success<List<FilmCategoryEntity>>).data
+            val categories =
+                (categoryState.value as HomeUIState.Success<List<FilmCategoryEntity>>).data
             val selectedCategory = categories.find { it.isClicked } ?: categories.first()
             CategoryList(
                 categories = categories,
@@ -339,6 +445,18 @@ fun HomeScreenCategoryState(
     }
 }
 
+/**
+ * A Composable function that displays a horizontal list of categories using a [LazyRow].
+ * Each category is displayed in a clickable card, and the selected category is highlighted.
+ *
+ * @param categories A list of [FilmCategoryEntity] objects representing the categories to display.
+ * @param selectedCategory The currently selected category.
+ * @param onCategorySelected A lambda function that will be called when a category is clicked, passing the selected [FilmCategoryEntity].
+ *
+ * This function uses [LazyRow] to display categories in a horizontal scrollable row. Each category is displayed
+ * within a [Card] that highlights the selected category with different colors and borders. When a category is clicked,
+ * it invokes the [onCategorySelected] function to update the selected category.
+ */
 @Composable
 fun CategoryList(
     categories: List<FilmCategoryEntity>,
@@ -377,6 +495,25 @@ fun CategoryList(
     }
 }
 
+/**
+ * A Composable function that displays the current state of the home screen's movie list.
+ * It handles various UI states like loading, error, and success.
+ *
+ * @param animatedVisibilityScope A scope used for shared element transitions.
+ * @param movieState A [State] object representing the current UI state of type [HomeUIState<List<FilmCardEntity>>].
+ *                   This can represent different states:
+ *                   - [HomeUIState.Empty]: No movie data available.
+ *                   - [HomeUIState.Error]: An error occurred while fetching movie data. Displays an error message.
+ *                   - [HomeUIState.Loading]: Data is being loaded, shows a loading indicator.
+ *                   - [HomeUIState.Success]: Movie data loaded successfully, displays the movie list.
+ * @param navController The [NavController] used for navigating to different screens.
+ * @param viewModel The [ScreenHomeViewModel] that manages movie data and favorite movie toggle.
+ * @param listState The [LazyGridState] used to manage the scroll state of the LazyVerticalGrid.
+ *
+ * This function checks the state of the movie data and displays the appropriate UI. If the data is successfully
+ * loaded, it displays a list of movies. When a movie is clicked, the navigation to the detail screen is handled
+ * through the [navController]. Additionally, it allows toggling a movie's favorite status.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.HomeScreenMoviesState(
@@ -387,10 +524,10 @@ fun SharedTransitionScope.HomeScreenMoviesState(
     listState: LazyGridState,
 ) {
     when (movieState.value) {
-        is HomeUIState.Empty -> LoadingComponent() // TODO: EmptyComponenet
+        is HomeUIState.Empty -> LoadingComponent()
         is HomeUIState.Error -> {
             val errorMessage = (movieState.value as HomeUIState.Error).message
-            ErrorComponent(errorMessage)
+            ErrorComponent(errorMessage = errorMessage)
         }
 
         is HomeUIState.Loading -> LoadingComponent()
@@ -398,18 +535,36 @@ fun SharedTransitionScope.HomeScreenMoviesState(
             val movies = (movieState.value as HomeUIState.Success<List<FilmCardEntity>>).data
             HomeScreenMovies(
                 animatedVisibilityScope = animatedVisibilityScope,
-                movies, listState, {
-                //onFavoriteClick
-                viewModel.toggleFavorite(it)
-            },{
-                //onItemClicked
-                val json = Gson().toJson(it)
-                navController.navigate("${Screens.ScreenDetail.route}/$json")
-            })
+                films = movies,
+                listState = listState,
+                onFavoriteClick = {
+                    //onFavoriteClick
+                    viewModel.toggleFavorite(it)
+                },
+                onItemClicked = {
+                    //onItemClicked
+                    val json = Gson().toJson(it)
+                    navController.navigate("${Screens.ScreenDetail.route}/$json")
+                }
+            )
         }
     }
 }
 
+/**
+ * A Composable function that displays a list of movies in a grid format.
+ * The movies are presented in a [LazyVerticalGrid] with 2 columns, and shared element transitions are supported.
+ *
+ * @param animatedVisibilityScope A scope used for shared element transitions.
+ * @param films A list of [FilmCardEntity] representing the movies to display.
+ * @param listState The [LazyGridState] used to manage the scroll state of the grid.
+ * @param onFavoriteClick A lambda function that is called when a movie's favorite icon is clicked.
+ * @param onItemClicked A lambda function that is called when a movie item is clicked.
+ *
+ * This function renders a grid of movie cards with shared element transitions. When a movie's favorite icon is clicked,
+ * the [onFavoriteClick] function is invoked. When a movie card is clicked, the [onItemClicked] function is triggered,
+ * navigating the user to the movie's detail screen.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.HomeScreenMovies(
@@ -433,12 +588,34 @@ fun SharedTransitionScope.HomeScreenMovies(
                 animatedVisibilityScope = animatedVisibilityScope,
                 film = film,
                 onFavoriteClick = { onFavoriteClick(it) },
-                onItemClicked = { onItemClicked(it) }
+                onItemClicked = { onItemClicked(it) } // Calls item click handler for navigation
             )
         }
     }
 }
 
+/**
+ * A Composable function that displays an individual movie card.
+ * Each card contains a movie's image, name, rating, price, and a favorite icon.
+ *
+ * @param animatedVisibilityScope A scope used for shared element transitions.
+ * @param film A [FilmCardEntity] representing the movie to be displayed in the card.
+ * @param onFavoriteClick A lambda function that is called when the favorite icon is clicked.
+ * @param onItemClicked A lambda function that is called when the movie card is clicked.
+ *
+ * This function creates a card displaying the movie details with shared element transitions. When the movie's
+ * favorite icon is clicked, the [onFavoriteClick] function is called. When the card is clicked, the [onItemClicked]
+ * function is triggered to navigate to the movie's detail screen.
+ *
+ * This function creates a card displaying the movie details, including a shared element transition for the image, title,
+ * rating, and price. When the user clicks the movie card or the favorite icon, the corresponding callback functions
+ * are triggered to handle navigation and update the movie's favorite status.
+ *
+ * The shared element transition uses [sharedElement] modifier with `rememberSharedContentState` to create seamless animations
+ * between the movie card and the detailed movie view. The elements such as the image, title, rating, and price are all part of
+ * this transition and are associated with unique content keys (e.g., "image/${film.image}", "title/${film.name}", etc.).
+ * These keys ensure that each individual element is properly mapped and animated during navigation.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.FilmCardItem(
@@ -452,7 +629,7 @@ fun SharedTransitionScope.FilmCardItem(
             .padding(8.dp)
             .fillMaxWidth()
             .height(300.dp)
-            .clickable { onItemClicked(film) },
+            .clickable { onItemClicked(film) }, // Triggers item click event for navigation
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
@@ -466,7 +643,7 @@ fun SharedTransitionScope.FilmCardItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .sharedElement(
-                            state = rememberSharedContentState("image/${film.image}"),
+                            state = rememberSharedContentState("image/${film.image}"), // Shared element for the movie image
                             animatedVisibilityScope = animatedVisibilityScope,
                             boundsTransform = { _, _ ->
                                 tween(durationMillis = 1000)
@@ -494,7 +671,8 @@ fun SharedTransitionScope.FilmCardItem(
                 }
             }
 
-            if (film.id % 3 == 0){
+            // Randomized campaign display condition to enhance UI design, based on film id
+            if (film.id % 3 == 0) {
                 if (film.campaign == null) {
                     Box(
                         modifier = Modifier
@@ -555,7 +733,8 @@ fun SharedTransitionScope.FilmCardItem(
                     text = "${film.price} ₺",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    modifier = Modifier
+                        .padding(vertical = 4.dp)
                         .sharedElement(
                             state = rememberSharedContentState("price/${film.price}"),
                             animatedVisibilityScope = animatedVisibilityScope,
@@ -569,6 +748,19 @@ fun SharedTransitionScope.FilmCardItem(
     }
 }
 
+/**
+ * A Composable function that displays a group of [FilterChip] components for filtering items by categories.
+ * The chips allow users to select or deselect categories, and the selected categories are visually indicated.
+ *
+ * @param categories A list of strings representing the categories available for selection. Each category will be displayed as a [FilterChip].
+ * @param selectedCategories A set of strings representing the categories that are currently selected. The chips for these categories will be highlighted as selected.
+ * @param onCategorySelected A lambda function that is called when the selection of categories changes. It takes a [Set<String>] of the currently selected categories.
+ *
+ * The function uses a [FlowRow] to display the filter chips in a flexible, multi-line layout. Each [FilterChip] has a label and may optionally display an icon if the category is selected.
+ * The icon used when a category is selected is a checkmark icon from [Icons.Filled.Done].
+ *
+ * When a [FilterChip] is clicked, the function updates the selection state by adding or removing the category from the [selectedCategories] set. The updated selection is passed to the [onCategorySelected] callback.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FilterChipGroup(

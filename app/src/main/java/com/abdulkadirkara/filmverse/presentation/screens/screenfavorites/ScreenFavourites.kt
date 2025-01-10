@@ -1,6 +1,5 @@
 package com.abdulkadirkara.filmverse.presentation.screens.screenfavorites
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -58,9 +57,33 @@ import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
 import com.google.accompanist.pager.rememberPagerState
 
+/**
+ * Data class representing a tab item with a title, unselected icon, and selected icon.
+ * It is used for tab navigation.
+ *
+ * @param title The title of the tab.
+ * @param unselectedIcon The icon displayed when the tab is not selected.
+ * @param selectedIcon The icon displayed when the tab is selected.
+ */
+data class TabItem(
+    val title: String,
+    val unselectedIcon: ImageVector,
+    val selectedIcon: ImageVector
+)
+
+/**
+ * A composable screen that displays two tabs:
+ * 1. "Favoriler" - A tab to view the list of favorite films.
+ * 2. "Koleksiyonlar" - A tab (currently a placeholder) to view collections.
+ *
+ * This screen uses a pager to switch between the tabs.
+ *
+ * @param viewModel The ViewModel to manage the screen's data and state. It is provided by Hilt.
+ */
 @OptIn(ExperimentalPagerApi::class)
 @Composable
 fun ScreenFavorites(viewModel: ScreenFavoritesViewModel = hiltViewModel()) {
+    // List of tab items with titles and associated icons.
     val tabItems = listOf(
         TabItem(
             title = "Favoriler",
@@ -74,12 +97,15 @@ fun ScreenFavorites(viewModel: ScreenFavoritesViewModel = hiltViewModel()) {
         )
     )
 
+    // State to track the currently selected tab.
     var selectedTabIndex by remember { mutableIntStateOf(0) }
 
+    // PagerState to manage the pager for tab switching.
     val pagerState = rememberPagerState(
         pageCount = tabItems.size
     )
 
+    // Synchronize the tab selection with the pager's current page.
     LaunchedEffect(selectedTabIndex) {
         pagerState.animateScrollToPage(selectedTabIndex)
     }
@@ -91,13 +117,16 @@ fun ScreenFavorites(viewModel: ScreenFavoritesViewModel = hiltViewModel()) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        TabRow (selectedTabIndex = selectedTabIndex) {
+        // Tab row to display the tabs at the top.
+        TabRow(selectedTabIndex = selectedTabIndex) {
+            // Iterate over the tabItems list and create a Tab for each item.
             tabItems.forEachIndexed { index, tabItem ->
                 Tab(
                     selected = selectedTabIndex == index,
                     onClick = { selectedTabIndex = index },
                     text = { Text(text = tabItem.title) },
                     icon = {
+                        // Dynamically switch between selected and unselected icons.
                         Icon(
                             imageVector = if (selectedTabIndex == index) tabItem.selectedIcon else tabItem.unselectedIcon,
                             contentDescription = tabItem.title
@@ -107,18 +136,23 @@ fun ScreenFavorites(viewModel: ScreenFavoritesViewModel = hiltViewModel()) {
             }
         }
 
+        // HorizontalPager to display the content corresponding to each tab.
         HorizontalPager(
             state = pagerState,
-            modifier = Modifier.fillMaxWidth().weight(1f)
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
         ) { index ->
+            // Box that holds the content of each page in the pager.
             Box(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
-            ){
+            ) {
                 when (index) {
                     0 -> {
                         FavoriteFilmsContent(viewModel)
                     }
+
                     1 -> {
                         // Koleksiyonlar Tab'ı
                         Text(text = "Koleksiyonlar içerikleri burada olacak.")
@@ -129,17 +163,20 @@ fun ScreenFavorites(viewModel: ScreenFavoritesViewModel = hiltViewModel()) {
     }
 }
 
-data class TabItem(
-    val title: String,
-    val unselectedIcon: ImageVector,
-    val selectedIcon: ImageVector
-)
-
+/**
+ * A composable function that displays the list of favorite films.
+ * It collects the favorite films from the ViewModel and displays them in a LazyColumn.
+ * If there's an error message, it displays it at the top.
+ *
+ * @param viewModel The ViewModel that provides the favorite films and error messages.
+ */
 @Composable
 fun FavoriteFilmsContent(viewModel: ScreenFavoritesViewModel) {
+    // Collect favorite films and error message from the ViewModel.
     val favoriteFilms by viewModel.favoriteFilms.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
+    // Load the favorite films when the component is launched or favorite films change.
     LaunchedEffect(favoriteFilms) {
         viewModel.loadFavoriteFilms()
     }
@@ -151,15 +188,28 @@ fun FavoriteFilmsContent(viewModel: ScreenFavoritesViewModel) {
             items(favoriteFilms.size) { film ->
                 FilmItem(
                     film = favoriteFilms[film],
-                    onAddToCollectionClick = { /*viewModel.deleteFilm(favoriteFilms[film])*/ },
-                    onRemoveFromFavoritesClick = { viewModel.deleteFilm(favoriteFilms[film]) },
-                    onShareClick = {}
+                    onAddToCollectionClick = { /* Functionality to add to collection */ },
+                    onRemoveFromFavoritesClick = {
+                        viewModel.deleteFilm(favoriteFilms[film])
+                        viewModel.loadFavoriteFilms()
+                    },
+                    onShareClick = {/* Functionality to share film */ }
                 )
             }
         }
     }
 }
 
+/**
+ * A Composable function that represents a film item in the favorites list.
+ * It displays a film's image, name, category, rating, and price. It also provides options
+ * to add the film to a collection, share it, or remove it from favorites.
+ *
+ * @param film The [FilmEntityModel] that contains information about the film.
+ * @param onAddToCollectionClick A lambda function to handle the action when adding the film to a collection.
+ * @param onRemoveFromFavoritesClick A lambda function to handle the action when removing the film from favorites.
+ * @param onShareClick A lambda function to handle the action when sharing the film.
+ */
 @Composable
 fun FilmItem(
     film: FilmEntityModel,
@@ -167,6 +217,7 @@ fun FilmItem(
     onRemoveFromFavoritesClick: () -> Unit,
     onShareClick: () -> Unit
 ) {
+    // Local state to track whether the options dropdown is expanded or not
     var expanded by remember { mutableStateOf(false) }
 
     OutlinedCard(
@@ -228,9 +279,10 @@ fun FilmItem(
                     )
                 }
 
+                // Dropdown menu that contains actions like adding to collection, sharing, and deleting
                 DropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
+                    expanded = expanded, // Dropdown is visible when 'expanded' is true
+                    onDismissRequest = { expanded = false } // Close the dropdown when dismissed
                 ) {
                     DropdownMenuItem(
                         text = { Text(text = "Listeye Ekle") },
@@ -264,7 +316,7 @@ fun FilmItem(
                         text = { Text(text = "Sil") },
                         onClick = {
                             expanded = false
-                            onRemoveFromFavoritesClick()
+                            onRemoveFromFavoritesClick() // Trigger the remove from favorites action
                         },
                         leadingIcon = {
                             Icon(
@@ -279,8 +331,7 @@ fun FilmItem(
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                        },
+                        .clickable { /* Handle click to add to cart */ },
                     shape = RoundedCornerShape(10.dp),
                     colors = CardDefaults.cardColors(
                         containerColor = Color(0xFF0D47A1)

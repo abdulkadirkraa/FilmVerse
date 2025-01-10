@@ -10,6 +10,8 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.ShoppingCart
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -46,6 +48,14 @@ import com.abdulkadirkara.filmverse.presentation.screens.screenprofile.ScreenPro
 import com.abdulkadirkara.filmverse.presentation.screens.scrennsearch.ScreenSearch
 import com.google.gson.Gson
 
+/**
+ * Composable function for displaying the content of the bottom navigation bar with icons, labels, and badges.
+ *
+ * @param menuItems A list of [BottomNavItem] representing the items in the bottom navigation.
+ * @param navController The [NavController] used for navigation between different screens.
+ * @param choosenItem A [MutableState] representing the currently selected item index.
+ * @param cartItemCount The number of items in the cart, used to display the badge count for the cart item.
+ */
 @Composable
 fun BottomNavigationBarContent(
     menuItems: List<BottomNavItem>,
@@ -63,12 +73,13 @@ fun BottomNavigationBarContent(
                 NavigationBarItem(
                     selected = choosenItem.value == index,
                     onClick = {
+                        // Update the selected item index and navigate to the corresponding screen
                         choosenItem.value = index
                         navController.navigate(bottomNavItem.screen.route) {
-                            launchSingleTop = true
-                            restoreState = true
+                            launchSingleTop = true // Avoid creating multiple instances of the same destination
+                            restoreState = true // Restore the previous state of the destination
                             popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
+                                saveState = true // Save the state of the previous destination
                             }
                         }
                     },
@@ -102,12 +113,19 @@ fun BottomNavigationBarContent(
     )
 }
 
+/**
+ * Composable function to display a badge on the icon if the badge count is greater than 0.
+ *
+ * @param badgeCount The count of the badge to display.
+ * @param isCartIcon A boolean indicating whether the icon represents the cart.
+ * @param content The composable content to be displayed within the badge box.
+ */
 @Composable
 fun BadgeBox(badgeCount: Int, isCartIcon: Boolean, content: @Composable () -> Unit) {
     if (badgeCount > 0) {
-        androidx.compose.material3.BadgedBox(
+        BadgedBox(
             badge = {
-                androidx.compose.material3.Badge {
+                Badge {
                     Text(badgeCount.toString(), fontSize = 8.sp)
                 }
             }
@@ -119,6 +137,12 @@ fun BadgeBox(badgeCount: Int, isCartIcon: Boolean, content: @Composable () -> Un
     }
 }
 
+/**
+ * Composable function to display the bottom navigation bar and handle navigation between different screens.
+ * This function manages navigation logic and displays a badge count for the cart.
+ *
+ * @param menuItems A list of [BottomNavItem] representing the items in the bottom navigation.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun BottomnavigationBar() {
@@ -155,6 +179,11 @@ fun BottomnavigationBar() {
                     val viewModel: ScreenHomeViewModel = hiltViewModel()
                     ScreenHome(navController, viewModel, animatedVisibilityScope = this)
                 }
+                /**
+                 * Composable destination for the Detail Screen.
+                 *
+                 * @param film A JSON string representing the selected film.
+                 */
                 composable(
                     route = "${Screens.ScreenDetail.route}/{film}",
                     arguments = listOf(navArgument("film") { type = NavType.StringType })
@@ -184,6 +213,14 @@ fun BottomnavigationBar() {
     }
 }
 
+/**
+ * Data class representing a bottom navigation item, including its icon, label, route, and optional badge count.
+ *
+ * @param iconRes The icon image resource for the navigation item.
+ * @param label The label text for the navigation item.
+ * @param screen The screen associated with this navigation item.
+ * @param badgeCount The badge count to display for the item. Default is 0.
+ */
 data class BottomNavItem(
     val iconRes: ImageVector,
     val label: String,

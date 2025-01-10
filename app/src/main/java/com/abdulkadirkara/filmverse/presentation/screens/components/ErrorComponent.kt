@@ -27,6 +27,13 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 
+/**
+ * A composable function that displays a customizable error screen with an animated Lottie
+ * animation, an error message, and a button to close the application.
+ *
+ * @param errorMessage The error message to display on the screen. This will be shown below
+ *        the "Hata!" text.
+ */
 @Composable
 fun ErrorComponent(
     errorMessage: String,
@@ -35,9 +42,10 @@ fun ErrorComponent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.Black.copy(alpha = 0.7f)), // Daha belirgin siyah arka plan
+            .background(Color.Black.copy(alpha = 0.7f)), // Dark translucent background
         contentAlignment = Alignment.Center
     ) {
+        // Box for the error card containing Lottie animation, error text, and button
         Box(
             modifier = Modifier
                 .width(320.dp)
@@ -49,8 +57,10 @@ fun ErrorComponent(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                // Load the Lottie composition for the error animation (using raw resource)
                 val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.filmverseerrorlottie))
 
+                // Display the Lottie animation with infinite iteration
                 LottieAnimation(
                     composition = composition,
                     iterations = LottieConstants.IterateForever,
@@ -69,6 +79,7 @@ fun ErrorComponent(
 
                 Button(
                     onClick = {
+                        // Close the app by calling finish() on the current activity
                         (context as? Activity)?.finish()
                     },
                     modifier = Modifier.padding(top = 16.dp)

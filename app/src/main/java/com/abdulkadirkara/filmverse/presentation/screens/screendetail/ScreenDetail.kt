@@ -71,8 +71,19 @@ import com.abdulkadirkara.domain.model.FilmCardEntity
 import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.presentation.navigation.Screens
 import com.abdulkadirkara.filmverse.presentation.screens.components.CustomImage
+import com.abdulkadirkara.filmverse.presentation.screens.components.ErrorComponent
 import com.abdulkadirkara.filmverse.presentation.screens.components.topappbar.DetailScreenCustomTopAppBar
 
+/**
+ * A composable screen displaying the detailed information of a film.
+ * It allows the user to view film details such as the image, category, rating, director, and description.
+ * Users can also add the film to their cart and manage the quantity and price.
+ *
+ * @param animatedVisibilityScope The animated visibility scope for shared element transitions.
+ * @param film The film data object containing the details of the film to display.
+ * @param navController The navigation controller to manage screen navigation.
+ * @param viewModel The ScreenDetailViewModel responsible for managing the film details, favorites, and cart.
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SharedTransitionScope.ScreenDetail(
@@ -80,23 +91,33 @@ fun SharedTransitionScope.ScreenDetail(
     film: FilmCardEntity,
     navController: NavController,
     viewModel: ScreenDetailViewModel = hiltViewModel()) {
+
     val isFavorite by viewModel.favoriteStatus.collectAsState()
+
+    // The quantity of the item in the cart, initially set to 1
     var quantity by remember { mutableIntStateOf(1) }
     val totalPrice = remember { mutableIntStateOf(film.price * quantity) }
+
+    // The current context, used for displaying Toast messages
     val context = LocalContext.current
+
+    // The scroll state for the screen to allow scrolling if the content overflows
     val verticalState = rememberScrollState()
 
     val insertMovieResult by viewModel.insertMovieCardResult.observeAsState()
     val cartItemCount = viewModel.cartItemCount.collectAsState()
 
+    // Triggering side effects when cart item count changes
     LaunchedEffect(key1 = cartItemCount.value) {
         viewModel.getCartItemCount()
     }
 
+    // Triggering side effects when favorite status changes
     LaunchedEffect(isFavorite) {
         viewModel.toggleFavorite(film)
     }
 
+    // Triggering side effects when a movie is inserted into the cart
     LaunchedEffect(insertMovieResult) {
         insertMovieResult?.let { response ->
             when (response) {
@@ -114,6 +135,7 @@ fun SharedTransitionScope.ScreenDetail(
 
     Scaffold(
         topBar = {
+            // Custom top app bar with shared element transition for film name
             DetailScreenCustomTopAppBar(
                 modifier = Modifier
                     .sharedElement(
@@ -130,12 +152,14 @@ fun SharedTransitionScope.ScreenDetail(
             )
         },
         bottomBar = {
+            // Bottom bar containing quantity controls and "Add to Cart" button
             Column (
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(Color.White)
                     .padding(vertical = 12.dp, horizontal = 16.dp)
             ){
+                // Row for the quantity control (decrease, display, increase)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -190,6 +214,7 @@ fun SharedTransitionScope.ScreenDetail(
                     }
                 }
 
+                // Row for displaying total price and "Add to Cart" button
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -197,6 +222,7 @@ fun SharedTransitionScope.ScreenDetail(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
+                    // Text displaying total price with shared element transition
                     Text(
                         text = "${totalPrice.intValue} TL",
                         fontSize = 24.sp,
@@ -247,6 +273,7 @@ fun SharedTransitionScope.ScreenDetail(
             }
         }
     ) { paddingValues ->
+        // Column displaying film details and additional sections
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -258,6 +285,7 @@ fun SharedTransitionScope.ScreenDetail(
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ){
+                // Custom image with shared element transition for film image
                 CustomImage(
                     imageUrl = film.image,
                     modifier = Modifier.weight(50f)
@@ -271,9 +299,11 @@ fun SharedTransitionScope.ScreenDetail(
                     contentScale = ContentScale.FillHeight,
                     imageSize = DpSize(150.dp, 200.dp)
                 )
+                // Column displaying film details like category, rating, director, and description
                 Column(
                     modifier = Modifier.fillMaxWidth().padding(4.dp).weight(50f),
                 ) {
+                    // Favorite button (click to toggle favorite status)
                     Box(
                         modifier = Modifier
                             .size(48.dp)
@@ -299,6 +329,7 @@ fun SharedTransitionScope.ScreenDetail(
                         color = Color.Gray,
                         modifier = Modifier.padding(bottom = 2.dp)
                     )
+                    // Row displaying rating icon and rating value
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             Icons.Filled.Star,
@@ -307,6 +338,7 @@ fun SharedTransitionScope.ScreenDetail(
                             modifier = Modifier.size(24.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
+                        // Shared element transition for the rating text
                         Text(
                             modifier = Modifier.sharedElement(
                                 state = rememberSharedContentState("rating/${film.rating}"),
@@ -332,6 +364,7 @@ fun SharedTransitionScope.ScreenDetail(
                 }
             }
 
+            // Spacer for visual separation between sections
             Spacer(
                 modifier = Modifier
                     .height(8.dp)
@@ -435,6 +468,15 @@ fun SharedTransitionScope.ScreenDetail(
     }
 }
 
+/**
+ * A composable function that displays an animated counter.
+ * The counter value is animated digit by digit whenever the `count` value changes.
+ * Each digit transitions with a slide effect when the counter value is updated.
+ *
+ * @param count The current count to be displayed in the counter. This value is animated.
+ * @param modifier A modifier to be applied to the `Row` layout.
+ * @param style The text style for the digits. Defaults to `MaterialTheme.typography.titleLarge`.
+ */
 @Composable
 fun AnimatedCounter(
     count: Int,

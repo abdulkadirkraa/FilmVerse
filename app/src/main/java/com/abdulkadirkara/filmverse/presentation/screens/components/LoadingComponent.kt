@@ -16,11 +16,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/**
+ * A composable function that displays a loading screen with a progress indicator and a
+ * "Yükleniyor..." message to inform the user that a task is in progress.
+ *
+ * This component is typically used when loading data, performing network operations,
+ * or waiting for some other background task to complete.
+ */
 @Composable
 fun LoadingComponent() {
+    // Box to center the loading content in the middle of the screen
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(

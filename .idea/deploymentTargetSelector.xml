@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-01-09T23:16:07.887721500Z">
+        <DropdownSelection timestamp="2025-01-10T21:41:59.714584100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=C:\Users\Vizyon\.android\avd\Pixel_4_API_34.avd" />

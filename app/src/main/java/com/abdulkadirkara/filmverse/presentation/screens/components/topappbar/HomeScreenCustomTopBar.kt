@@ -29,6 +29,13 @@ import androidx.compose.ui.unit.sp
 import com.abdulkadirkara.filmverse.R
 import com.abdulkadirkara.filmverse.ui.theme.babasNeue
 
+/**
+ * A custom top bar for the home screen that includes a Cast icon, a centered title,
+ * a Search icon, and a Filter icon with a badge showing the number of active filters.
+ *
+ * @param onFilterClick A lambda function that will be invoked when the filter icon is clicked.
+ * @param filterCount The number of active filters, displayed in a badge next to the filter icon.
+ */
 @Composable
 fun HomeScreenCustomTopBar(
     onFilterClick: () -> Unit,
@@ -37,20 +44,22 @@ fun HomeScreenCustomTopBar(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .graphicsLayer {
-                alpha = 0.95f
-                shadowElevation = 8.dp.toPx()
+            .graphicsLayer { // Apply alpha and shadow effects to the top bar
+                alpha = 0.95f // Slight transparency for the background
+                shadowElevation = 8.dp.toPx() // Add shadow under the top bar
             }
-            .background(Color.Black.copy(alpha = 0.5f))
+            .background(Color.Black.copy(alpha = 0.5f)) // Semi-transparent black background
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Cast Icon
+        // Cast Icon (on the left side of the top bar)
         Icon(
             imageVector = Icons.Rounded.Cast,
             contentDescription = "Cast",
             tint = Color.White,
-            modifier = Modifier.padding(start = 8.dp).weight(10f)
+            modifier = Modifier
+                .padding(start = 8.dp)
+                .weight(10f)
         )
 
         // Spacer to push the text to the center
@@ -70,15 +79,18 @@ fun HomeScreenCustomTopBar(
         // Spacer to balance the space after the text
         Spacer(modifier = Modifier.weight(1f))
 
-        // Search and Filter Icons
+        // Row layout for the search and filter icons on the right side of the top bar
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(2.dp), // Reduce space between icons
-            modifier = Modifier.padding(end = 4.dp).weight(20f)
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .weight(20f)
         ) {
             IconButton(onClick = { /*onSearchClick*/ }) {
                 Icon(Icons.Rounded.Search, contentDescription = "Search", tint = Color.White)
             }
+            // Column to vertically arrange the filter icon and its badge
             Column(
                 verticalArrangement = Arrangement.Center
             ) {
@@ -97,7 +109,11 @@ fun HomeScreenCustomTopBar(
                     IconButton(
                         onClick = onFilterClick
                     ) {
-                        Icon(Icons.Rounded.FilterList, contentDescription = "Filter", tint = Color.White)
+                        Icon(
+                            Icons.Rounded.FilterList,
+                            contentDescription = "Filter",
+                            tint = Color.White
+                        )
                     }
                 }
             }
